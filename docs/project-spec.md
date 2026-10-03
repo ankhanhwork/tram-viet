@@ -4,7 +4,7 @@
 
 **Tên sản phẩm:** Trạm Việt  
 **Tagline:** Bạn đồng hành xuyên Việt  
-**Loại sản phẩm:** Webapp responsive, ưu tiên trải nghiệm mobile cho người đi đường và desktop/tablet cho trạm dừng  
+**Loại sản phẩm:** Webapp responsive, ưu tiên trải nghiệm mobile cho người đi đường và mobile/POS cho cửa hàng và desktop/tablet cho quản lý trạm dừng  
 **Mục tiêu hiện tại:** Xây dựng interactive product demo phục vụ pitching, chưa phải sản phẩm production  
 **Nguyên tắc triển khai:** Frontend-first, không phụ thuộc backend, không cần API thật, không cần thanh toán thật, nhưng toàn bộ flow chính phải có thể bấm và trải nghiệm được như một sản phẩm hoàn chỉnh.
 
@@ -58,9 +58,9 @@ Bản demo nhằm giúp khách hàng nhìn thấy và hiểu được:
 2. Tài xế có thể tạo và chia sẻ chuyến đi như thế nào.
 3. Hành khách có thể tham gia chuyến và đặt đồ trước như thế nào.
 4. Trạm dừng có thể biết trước xe nào sắp đến, có bao nhiêu hành khách và bao nhiêu đơn đặt trước.
-5. Trạm có thể vận hành order trước khi xe đến.
+5. Cửa hàng trong trạm nhận đơn, chuẩn bị món theo ETA và bàn giao khi khách tới.
 6. Tài xế đối tác nhận commission như thế nào.
-7. Trạm Việt tạo ra một hệ sinh thái kết nối Người đi đường – Tài xế – Trạm dừng.
+7. Trạm Việt tạo ra một hệ sinh thái kết nối Người đi đường – Tài xế – Cửa hàng – Trạm dừng.
 
 Bản demo phải tạo cảm giác như một sản phẩm đã hoàn thiện ở mức UX/UI.
 
@@ -129,6 +129,14 @@ Có toàn bộ quyền của user bình thường và thêm:
 - Partner status.
 - Earnings history.
 
+### Cửa hàng / quầy thuê trong trạm
+
+- Nhận đúng đơn của cửa hàng mình.
+- Xem ETA xe, thời gian chuẩn bị và thời điểm nên bắt đầu làm món.
+- Một chạm nhận đơn, bắt đầu làm, báo món sẵn sàng và bàn giao.
+- In phiếu bếp mô phỏng.
+- Bật/tắt món còn bán và xem kết quả trong ngày.
+
 ### Trạm dừng
 
 - Nhìn thấy demand trước khi xe tới.
@@ -142,7 +150,15 @@ Có toàn bộ quyền của user bình thường và thêm:
 
 # 4. CẤU TRÚC SẢN PHẨM
 
-Bản demo gồm 2 sản phẩm chính:
+Bản demo gồm **3 giao diện trong cùng một frontend demo**:
+
+| Giao diện | Người dùng | Thiết bị ưu tiên | Trách nhiệm |
+|---|---|---|---|
+| Trạm Việt App / Travel App | Hành khách, người tự lái, mọi loại tài xế | Mobile | Trip, chia sẻ, đặt đồ; Partner Driver có thêm commission |
+| Trạm Việt Merchant | Cửa hàng/quầy thuê trong trạm | Mobile / POS cầm tay | Nhận đơn, chuẩn bị, bàn giao, in phiếu mô phỏng |
+| Trạm Việt Station / Station Portal | Chủ/quản lý trạm, quản lý chuỗi | Desktop/tablet landscape | Incoming vehicles, giám sát đơn, hiệu suất cửa hàng, doanh thu và commission |
+
+Travel App vẫn là **một app chung** cho hành khách và tài xế. Merchant là giao diện vận hành của cửa hàng. Station Portal là giao diện quản lý toàn trạm.
 
 ## 4.1. Travel App
 
@@ -190,6 +206,22 @@ Navigation:
 4. Sales
 5. Partners
 6. Settings
+
+Station Portal có thêm bảng Merchant Performance và bộ lọc cửa hàng trong các màn hình Orders/Sales. Không thêm một POS desktop riêng cho cửa hàng ở phase này.
+
+## 4.3. Merchant App
+
+Dành cho nhân viên quầy/cửa hàng thuê trong trạm. Mobile-first, hình dung như màn hình Android smart POS có máy in nhiệt tích hợp. Demo chạy trong trình duyệt trên điện thoại hoặc khung terminal; không yêu cầu thiết bị thật.
+
+Navigation tối giản:
+
+1. Đơn hàng.
+2. Thực đơn.
+3. Hôm nay.
+
+Mỗi cửa hàng là một merchant độc lập, có tài khoản đăng nhập riêng được gắn cố định với đúng merchantId. Sau khi đăng nhập, nhân viên đi thẳng vào không gian vận hành của cửa hàng đó. Không có màn chọn cửa hàng/quầy, không hiển thị danh sách cửa hàng khác, và không cho đổi merchant trong phiên Merchant. Header luôn hiển thị danh tính tài khoản, tên cửa hàng, trạm/quầy và trạng thái đang nhận đơn. Desktop chỉ trình bày giao diện này trong khung mobile/POS; không xây dashboard desktop Merchant riêng.
+
+Demo login dùng tài khoản/mật khẩu giả lập riêng cho từng cửa hàng; không có auth/backend thật. Mỗi bộ thông tin đăng nhập ánh xạ tới đúng một merchantId. Phiên Merchant giữ merchantId từ danh tính đăng nhập; logout mới kết thúc phiên. Việc đổi actor trong Demo Controller chỉ vào lại một tài khoản demo xác định trước, không tạo bộ chọn cửa hàng trong Merchant App.
 
 ---
 
@@ -316,9 +348,11 @@ src/demo/
   users.ts
   trips.ts
   stations.ts
+  merchants.ts
   products.ts
   orders.ts
   commissions.ts
+  kitchenTickets.ts
   routeData.ts
   demoScenario.ts
 ```
@@ -328,6 +362,10 @@ Có thể dùng Zustand để quản lý state runtime.
 Có thể dùng localStorage để giữ state khi refresh.
 
 Phải có nút Reset Demo để đưa app về trạng thái ban đầu.
+
+Cả ba giao diện sử dụng cùng Zustand store. Chuyển actor bằng demo selector giữ nguyên dữ liệu chuyến và đơn. Merchant session lấy merchantId từ tài khoản đã đăng nhập, không cho nhân viên chọn hoặc chuyển sang merchant khác trong giao diện Merchant.
+
+Đồng bộ bắt buộc trong cùng một phiên trình duyệt. Nếu mở nhiều tab cùng origin, có thể dùng storage event/BroadcastChannel và kiểm tra trước khi pitch. Thiết bị khác mở QR chỉ tải được trip seed và có state local riêng; không hứa đồng bộ realtime giữa thiết bị khi chưa có backend.
 
 ## 7.3. Không phụ thuộc API ngoài để demo flow chính
 
@@ -390,6 +428,11 @@ Khi mở demo mặc định:
 - Hành khách: 42.
 - Pre-orders: 17.
 - Expected pre-order revenue: 1.840.000đ.
+- Merchant mặc định: Cơm Việt – quầy A12, Trạm Việt Ninh Bình.
+- Cửa hàng demo khác: Phở Việt – A01, Cà phê Việt – B02, Đặc sản Việt – C01.
+- 17 đơn khách seed được phân bổ về các cửa hàng. Tổng tiền các đơn seed phải đúng 1.840.000đ; số KPI lấy từ dữ liệu, không hard-code riêng ở từng screen.
+- Order 180.000đ trong pitch: 2 × Cơm gà (75.000đ) + 1 × Cà phê sữa (30.000đ), cùng cửa hàng Cơm Việt.
+- Sau order mới: 18 đơn khách, giá trị đặt trước dự kiến 2.020.000đ. Commission dự kiến riêng của đơn mới là 9.000đ; chỉ chuyển thành đã kiếm được sau khi bàn giao thành công.
 
 ---
 
@@ -438,7 +481,7 @@ Ví dụ:
 
 - Hiển thị Rest countdown.
 - Station Portal hiển thị “Đã đến”.
-- Order có thể chuyển Ready → Fulfilled.
+- Merchant có thể bàn giao món READY → PICKED_UP khi khách tới quầy. Trip tới trạm không tự động hoàn tất đơn.
 
 ### DEPARTED_STATION
 
@@ -491,7 +534,18 @@ Traffic
 [ Reset Demo ]
 ```
 
-Demo Controller cập nhật cùng store với Travel App và Station Portal.
+Bổ sung controls:
+
+- Chuyển giữa Traveler, Partner Driver, Merchant và Station Manager.
+- Chọn actor demo. Khi vào actor Merchant, dùng danh tính demo được gán sẵn; không có merchant switcher trong Merchant App.
+- Thêm đơn mới vào merchant demo đã đăng nhập.
+- Nhận đơn / Từ chối đơn kèm lý do.
+- Đến giờ chuẩn bị / Bắt đầu làm / Đã làm xong / Đã bàn giao.
+- Mô phỏng in phiếu thành công hoặc lỗi; in lại.
+- Bật/tắt âm báo và bật/tắt tự in khi nhận đơn.
+- Thay đổi ETA để chứng minh lịch chuẩn bị được tính lại.
+
+Demo Controller cập nhật cùng store với Travel App, Merchant App và Station Portal. Controls cũng phải tuân thủ transition hợp lệ; không skip từ NEW sang READY. Reset khôi phục cả món còn bán, đơn, phiếu in, demoTime, actor và commission.
 
 ---
 
@@ -936,6 +990,7 @@ Product card:
 - Price.
 - Prep time.
 - Popular badge.
+- Tên cửa hàng, mã quầy và trạng thái còn bán/hết món.
 
 Example products:
 
@@ -960,6 +1015,8 @@ Example products:
 ---
 
 ## U17 – Cart
+
+Items được nhóm theo cửa hàng và hiển thị quầy lấy món. Nếu giỏ có nhiều cửa hàng, checkout tạo một Order khách với các MerchantOrder riêng cho từng cửa hàng (xem mục 12A.3). Không tính một MerchantOrder thành một đơn khách mới.
 
 Hiển thị:
 
@@ -1006,8 +1063,9 @@ Khi bấm:
 - Show success.
 - Create order in Zustand/local state.
 - Update order counters.
-- Update station revenue.
-- Nếu trip commission eligible → update driver commission.
+- Update station expected pre-order value.
+- Tạo MerchantOrder trạng thái NEW cho từng cửa hàng có món trong giỏ.
+- Nếu trip commission eligible → update pending commission. Chưa ghi nhận earned commission/doanh thu đã hoàn tất tại checkout.
 
 Không gọi payment gateway.
 
@@ -1018,15 +1076,15 @@ Không gọi payment gateway.
 Status timeline:
 
 ```text
-Order placed
+Đã đặt (NEW)
 ↓
-Confirmed
+Đã nhận (ACCEPTED)
 ↓
-Preparing
+Đang làm (PREPARING)
 ↓
-Ready for pickup
+Sẵn sàng lấy món (READY)
 ↓
-Completed
+Đã nhận món (PICKED_UP)
 ```
 
 Hiển thị:
@@ -1038,6 +1096,8 @@ Hiển thị:
 - ETA to station.
 
 ---
+
+Nếu nhiều cửa hàng, hiển thị trạng thái và mã nhận món theo từng quầy. Đơn chỉ hoàn tất khi mọi phần không bị từ chối đã được bàn giao; phần bị từ chối hiển thị lý do và hoàn tiền mô phỏng nếu đã trả trước.
 
 ## U20 – Orders
 
@@ -1116,7 +1176,8 @@ Chỉ xuất hiện với Partner Driver.
 
 KPIs:
 
-- Total earnings.
+- Earned commission (đã bàn giao).
+- Pending commission (dự kiến, đang chờ).
 - This trip.
 - This month.
 - Orders generated.
@@ -1165,19 +1226,19 @@ Section:
 ### Next 2 Hours
 
 ```text
-11:20
+09:15
 Hoàng Long Express
 42 passengers
-18 orders
+17 orders
 1.840.000đ
 
-11:45
+10:00
 Mai Linh Travel
 36 passengers
 9 orders
 920.000đ
 
-12:05
+10:15
 FUTA Charter
 44 passengers
 21 orders
@@ -1186,13 +1247,13 @@ FUTA Charter
 
 Section:
 
-### Revenue Generated Before Arrival
+### Giá trị đặt trước trước khi xe tới
 
 Đây phải là card/visual nổi bật.
 
 Mục đích:
 
-Chứng minh Trạm Việt giúp trạm tạo doanh thu trước khi khách bước xuống xe.
+Chứng minh Trạm Việt giúp trạm nhìn thấy giá trị đặt trước khi khách bước xuống xe. Phân biệt giá trị đang chờ và doanh thu đã bàn giao. Ví dụ Next 2 Hours là seed minh họa; render từ selectors. Trip chính tăng 17 → 18 đơn, 1.840.000đ → 2.020.000đ sau checkout mới.
 
 ---
 
@@ -1282,12 +1343,15 @@ Có animation scanning.
 
 ## S06 – Order Management
 
-Kanban hoặc tabs:
+Màn hình giám sát đơn toàn trạm, có bộ lọc cửa hàng và tabs:
 
-- New.
-- Preparing.
-- Ready.
-- Completed.
+- Mới.
+- Đã nhận.
+- Đang làm.
+- Sẵn sàng.
+- Hoàn tất / Từ chối.
+
+Station Manager theo dõi; Merchant thực hiện nhận đơn, làm món và bàn giao.
 
 Mỗi order card:
 
@@ -1299,9 +1363,10 @@ Mỗi order card:
 
 Interaction:
 
-- New → Preparing.
-- Preparing → Ready.
-- Ready → Completed.
+- Lọc theo merchant, xe/chuyến, trạng thái.
+- Mở chi tiết đơn và từng phần thuộc cửa hàng.
+- Xem món sắp đến giờ làm, đã sẵn sàng, chậm chuẩn bị.
+- CTA “Mở Merchant demo” chuyển sang đúng cửa hàng để trình diễn thao tác; không trực tiếp đổi status tại dashboard quản lý trạm.
 
 Khi update:
 
@@ -1323,13 +1388,15 @@ Khi update:
 
 CTA:
 
-- Start Preparing.
-- Mark Ready.
-- Complete Order.
+- Xem các phần đơn theo cửa hàng và lịch sử xử lý.
+- Mở Merchant demo tương ứng.
+- Trạng thái chỉ đọc ở Station Portal, tự cập nhật khi Merchant thao tác.
 
 ---
 
 ## S08 – Sales Analytics
+
+Thêm bảng Merchant Performance: tên cửa hàng, đơn khách liên quan, số phần đơn cửa hàng, giá trị đặt trước, doanh thu hoàn tất, đơn đang làm, tỷ lệ bàn giao. Có filter cửa hàng và xem danh sách đơn liên quan.
 
 KPIs:
 
@@ -1376,6 +1443,175 @@ Settlement chỉ là UI.
 
 ---
 
+# 12A. MERCHANT APP – SCREEN MAP VÀ VẬN HÀNH
+
+Bổ sung **5 màn hình M01–M05**, tổng cộng **37 màn hình**: 23 Travel + 9 Station + 5 Merchant. Modal chi tiết phiếu in là state trong M03, không cần screen mới.
+
+## M01 – Merchant Login
+
+- Logo Trạm Việt Merchant, thông điệp đăng nhập dành cho nhân viên cửa hàng.
+- Trường tên đăng nhập/email và mật khẩu; CTA “Đăng nhập”.
+- Tài khoản demo mặc định được cấp sẵn cho Cơm Việt – quầy A12, Trạm Việt Ninh Bình; có thể hiển thị gợi ý thông tin đăng nhập cho buổi demo nhưng không cung cấp danh sách/bộ chọn merchant.
+- Mỗi tài khoản Merchant ánh xạ cố định tới đúng một merchantId và sau đăng nhập chuyển thẳng vào M02 của cửa hàng đó.
+- Không có lựa chọn Cơm Việt/Phở Việt/Cà phê Việt/Đặc sản Việt, không có chuyển quầy/cửa hàng từ header hoặc profile. Các cửa hàng khác chỉ truy cập bằng thông tin đăng nhập riêng của chính họ.
+- Login được mô phỏng local, không auth/backend thật. Đăng xuất quay lại M01; đăng nhập không thay đổi dữ liệu đơn.
+
+## M02 – Orders / Màn hình terminal chính
+
+Ưu tiên scan nhanh, luôn bật tại quầy. Không gian chỉ thuộc merchant của phiên đăng nhập. Header cố định: tên cửa hàng, trạm/quầy, số đơn mới, âm báo, auto-print và đăng xuất. Bottom navigation: Đơn hàng / Thực đơn / Hôm nay.
+
+Tabs: **Mới / Đã nhận / Đang làm / Sẵn sàng / Lịch sử**. Lịch sử gồm đã bàn giao và từ chối. Mọi danh sách chỉ lấy MerchantOrder thuộc activeMerchantId.
+
+Mỗi card có:
+
+- Mã đơn khách + mã phần đơn cửa hàng.
+- Món, số lượng, ghi chú; tổng tiền phần thuộc quầy.
+- Chuyến, biển số (nếu có), mã nhận món và quầy.
+- ETA xe/khách, thời gian chuẩn bị, thời điểm bắt đầu được đề xuất.
+- Trạng thái và một primary CTA theo trạng thái hiện tại.
+
+| Trạng thái | CTA | Kết quả |
+|---|---|---|
+| NEW | Nhận đơn | ACCEPTED; tạo phiếu in mô phỏng nếu auto-print bật |
+| NEW | Từ chối | Modal chọn lý do → REJECTED; khách thấy phản hồi |
+| ACCEPTED | Bắt đầu làm | PREPARING; lưu thời điểm bắt đầu |
+| PREPARING | Đã làm xong | READY; khách thấy quầy và mã nhận món |
+| READY | Đã bàn giao | Xác nhận mã nhận món → PICKED_UP |
+| PICKED_UP / REJECTED | Xem chi tiết | Chỉ đọc lịch sử; có thể xem/in lại phiếu |
+
+Đơn mới hiện banner và badge. Âm báo mô phỏng chỉ chạy sau thao tác người dùng bật âm; nếu browser chặn, vẫn có phản hồi trực quan. Không cần push notification thật.
+
+## M03 – Order Detail & Kitchen Ticket
+
+Hiển thị thông tin trong card, chi tiết món và ghi chú, timeline xử lý, ETA, prep time, mã nhận món, quầy lấy món. Các CTA dùng đúng rule M02.
+
+“In phiếu” mở preview phiếu giấy và animation 600–1500ms, sau đó báo “Đã in phiếu mô phỏng”. Có trạng thái lỗi được bật từ Demo Controller và CTA “In lại”. Không gọi printer SDK/Bluetooth/Wi-Fi, không cần thiết bị thật.
+
+Phiếu bếp chứa:
+
+- Trạm Việt, tên trạm, cửa hàng, mã quầy.
+- Mã đơn khách / MerchantOrder, ngày giờ demo.
+- Chuyến, biển số nếu có, ETA tại thời điểm in.
+- Món, số lượng, ghi chú (ví dụ “không hành”).
+- Mã nhận món, nơi nhận; nhãn “PHIẾU BẾP – DEMO”.
+
+Phiếu bếp phục vụ chuẩn bị món; không mô phỏng hóa đơn thuế. In lại cùng đơn tăng reprintCount nhưng không tạo đơn, không tăng doanh thu/commission. Lỗi in không thay đổi status của món. Nếu ETA đổi sau khi in, UI dùng ETA mới và cho in lại có nhãn “Cập nhật ETA”.
+
+## M04 – Menu Availability
+
+Danh sách món của đúng cửa hàng: ảnh nhỏ, tên, giá, thời gian làm, toggle “Còn bán / Hết món”. Có thể chỉnh prep time bằng giá trị preset trong demo.
+
+- Toggle cập nhật product.available trong shared store.
+- Travel Menu/Product Detail phản ánh ngay; món hết hàng không thêm vào giỏ được.
+- Checkout kiểm tra lại availability; nếu món trong giỏ vừa hết, thông báo và yêu cầu bỏ món trước khi tiếp tục.
+- Tắt món không tự hủy đơn đã nhận; các đơn hiện hữu vẫn xử lý theo status.
+- Không xây tồn kho nguyên liệu, kế toán hay POS bán hàng đầy đủ.
+
+## M05 – Today Summary
+
+Ngày lấy từ demoTime. KPIs của riêng cửa hàng: số phần đơn nhận được, số bàn giao, giá trị đặt trước đang chờ, doanh thu đã bàn giao, đơn cần làm tiếp, xe kế tiếp và ETA. Danh sách đơn sắp đến giờ chuẩn bị có CTA mở M03.
+
+Không dùng số walk-in trang trí khi không có seed. Nếu demo có walk-in, seed phải ghi source riêng và được tính từ dữ liệu.
+
+## 12A.1. Chuẩn bị theo ETA
+
+Mọi countdown dùng demoTime và arrivalAt của TripStop, không dùng timer độc lập giữa các screen.
+
+```text
+prepMinutes = thời gian món lâu nhất trong phần đơn của cửa hàng
+bufferMinutes = 3 phút (preset demo)
+suggestedStartAt = arrivalAt - prepMinutes - bufferMinutes
+startInMinutes = max(0, suggestedStartAt - demoTime)
+etaMinutes = max(0, arrivalAt - demoTime)
+```
+
+Quy ước max prep time giả định làm song song các món trong demo; không xây bài toán tối ưu công suất bếp.
+
+Ví dụ phần đơn Cơm Việt: ETA 32 phút, món lâu nhất 12 phút, buffer 3 phút → “Nên bắt đầu sau 17 phút”. Khi advance thêm 17 phút: ETA còn 15 phút, banner “Đến giờ chuẩn bị”. Bấm bắt đầu → PREPARING, advance 12 phút và bấm xong → READY, ETA còn 3 phút.
+
+- Chỉ ACCEPTED mới hiện nhắc bắt đầu làm. Đến giờ không tự động đổi sang PREPARING.
+- Cho phép bắt đầu sớm bằng thao tác của Merchant.
+- ETA trễ 20 phút tính lại suggestedStartAt cho đơn ACCEPTED; đơn đang làm giữ status và hiện cảnh báo “Xe đến muộn”.
+- ETA đến sớm mà chưa đủ thời gian làm: badge “Nguy cơ chậm món”.
+- Trip tới trạm: ETA 0; không tự nhận đơn, không tự báo xong/bàn giao.
+- Hành khách/người tự lái không có biển số vẫn đặt được; dùng tên chuyến, ETA và mã nhận món.
+
+## 12A.2. Order state machine thống nhất
+
+```text
+NEW → ACCEPTED → PREPARING → READY → PICKED_UP
+NEW → REJECTED
+```
+
+PICKED_UP tương ứng nhãn “Hoàn tất” trên Travel/Station. Không tạo thêm các status COMPLETED/FULFILLED có ý nghĩa trùng lặp trong code. REJECTED bắt buộc có lý do preset: hết món, quầy quá tải, quầy tạm nghỉ.
+
+Không chuyển lùi, không skip state. Đơn đã nhận không có flow hủy trong phase này. Các transition nằm trong store action dùng chung, không viết riêng từng screen.
+
+## 12A.3. Giỏ nhiều cửa hàng và mô hình dữ liệu
+
+Một lần checkout tạo **1 Order khách**, chứa **1 MerchantOrder cho mỗi cửa hàng**. Khách trả một lần mô phỏng và nhận món tại từng quầy. Merchant chỉ thấy phần của mình. Station xem toàn bộ và breakdown theo merchant.
+
+```ts
+type MerchantOrderStatus =
+  | 'NEW' | 'ACCEPTED' | 'PREPARING' | 'READY' | 'PICKED_UP' | 'REJECTED'
+
+interface Merchant {
+  id: string
+  stationId: string
+  name: string
+  counterCode: string
+  acceptingOrders: boolean
+}
+
+interface MerchantOrder {
+  id: string
+  orderId: string
+  merchantId: string
+  stationId: string
+  tripId: string
+  tripStopId: string
+  pickupCode: string
+  status: MerchantOrderStatus
+  items: OrderItemSnapshot[]
+  total: number // VND nguyên, không gồm phần của merchant khác
+  prepMinutes: number
+  bufferMinutes: number
+  acceptedAt?: string
+  startedAt?: string
+  readyAt?: string
+  pickedUpAt?: string
+  rejectedAt?: string
+  rejectionReason?: string
+}
+
+interface KitchenTicket {
+  id: string
+  merchantOrderId: string
+  status: 'PRINTING' | 'PRINTED' | 'FAILED'
+  printedAt?: string
+  arrivalAtSnapshot: string
+  reprintCount: number
+}
+```
+
+Product bổ sung merchantId, stationId, prepMinutes, available. Order khách có merchantOrderIds, tripId, stationId, customerUserId, total và paymentStatus mô phỏng. OrderItemSnapshot lưu tên món, giá, số lượng, ghi chú tại checkout; chỉnh menu không làm đổi đơn cũ.
+
+TripStop cần có id, stationId (nếu là trạm), arrivalAt (ISO datetime) và restMinutes. Khi khởi tạo scenario, demoTime là 08:33 ngày 03/10/2026 theo Asia/Ho_Chi_Minh; arrivalAt trạm Ninh Bình là 09:15 cùng ngày, ETA 42 phút.
+
+ETA lấy từ TripStop, không lưu nhiều bản ETA độc lập trên Order/MerchantOrder. Status tổng hợp của Order lấy từ các phần: nếu mọi phần REJECTED → bị từ chối; nếu mọi phần PICKED_UP/REJECTED và ít nhất một phần PICKED_UP → hoàn tất (ghi rõ phần bị từ chối); nếu các phần còn hiệu lực đều READY/PICKED_UP → sẵn sàng; các tổ hợp khác hiện tiến độ theo từng quầy, không giả định tất cả đã xong.
+
+## 12A.4. Phân tách quyền và metrics
+
+- Merchant lấy activeMerchantId từ tài khoản đã đăng nhập và chỉ đọc/xử lý đơn/món của mình; UI không cho tự sửa merchantId hoặc chuyển cửa hàng. Đây là capability mô phỏng trong frontend, không phải bảo mật production.
+- Station nhìn mọi cửa hàng thuộc trạm đang chọn; đọc trạng thái và aggregate dữ liệu.
+- Travel user xem đơn của mình; Partner Driver xem aggregate attribution/commission của trip mình, không được thao tác đơn quầy.
+- Tổng đơn khách đếm Order ID riêng biệt. Tổng phần đơn quầy đếm MerchantOrder ID. Labels phải thể hiện rõ hai đơn vị.
+- Expected value lấy từ phần đơn chưa REJECTED và chưa PICKED_UP; completed revenue chỉ cộng PICKED_UP. Nếu hiển thị tổng giá trị đặt trước, cộng cả pending và completed rồi ghi rõ nhãn.
+- Commission pending = tổng phần đơn eligible đang chờ × 5%; earned = tổng phần PICKED_UP eligible × 5%. REJECTED = 0. Khi bàn giao, chuyển pending sang earned, không cộng lần hai.
+- Dùng selectors tính tổng từ đơn hiện tại. Thao tác nhận đơn, in phiếu, check-in xe hoặc refresh không được tăng tiền. Việc phát sinh mới chỉ do checkout, việc ghi nhận chỉ do PICKED_UP.
+
+---
+
 # 13. BUSINESS RULES
 
 ## BR01 – Universal Trip Creation
@@ -1417,10 +1653,10 @@ Demo commission rate mặc định:
 Formula:
 
 ```text
-commission = fulfilled order total × commission rate
+commission = eligible PICKED_UP MerchantOrder total × commission rate
 ```
 
-Chỉ tính demo trên order completed/fulfilled hoặc có thể hiển thị pending commission cho order chưa fulfilled.
+Đã kiếm được chỉ tính trên phần đơn PICKED_UP. Phần đơn chưa bàn giao hiển thị commission dự kiến; REJECTED không có commission. Tổng hợp lên Order/trip theo mục 12A.4.
 
 ## BR07 – Non-partner Driver
 
@@ -1451,6 +1687,24 @@ Khi bấm `+10 minutes` trong Demo Controller:
 - Current time tăng.
 - ETA giảm hoặc thay đổi theo scenario.
 - Progress route tăng.
+
+---
+
+## BR11 – Merchant Ownership
+
+Mỗi product/MerchantOrder thuộc đúng một merchant và station. Merchant không xem/xử lý đơn cửa hàng khác. Station quản lý tổng thể, không thay thế nhân viên quầy.
+
+## BR12 – Preparation Schedule
+
+Lịch làm món lấy từ ETA của TripStop và prep time của phần đơn. Đổi demoTime/ETA cập nhật toàn bộ giao diện; nhắc làm món không tự đổi trạng thái.
+
+## BR13 – Fulfillment & Print
+
+MerchantOrder tuân thủ NEW → ACCEPTED → PREPARING → READY → PICKED_UP; chỉ NEW được REJECTED. In phiếu độc lập với fulfillment, không có printer integration thật.
+
+## BR14 – Availability & Accounting
+
+Món hết hàng không được checkout; đơn đã nhận giữ nguyên. Metrics và commission lấy từ shared selectors, đếm đơn khách và phần đơn quầy riêng, không tăng tiền do in lại hoặc lặp thao tác.
 
 ---
 
@@ -1492,9 +1746,12 @@ Ví dụ passenger tạo order mới:
 
 - Cart reset.
 - Orders tăng.
-- Station Portal orders tăng.
-- Station expected revenue tăng.
-- Nếu partner trip: driver commission tăng.
+- Merchant thấy phần đơn NEW của mình; Station Portal thấy Order và breakdown.
+- Station expected pre-order value tăng.
+- Nếu partner trip: pending commission tăng.
+- Merchant xử lý → Travel theo dõi trạng thái, Station thấy readiness.
+- Merchant bàn giao → completed revenue/earned commission tăng, pending giảm tương ứng.
+- Mọi action lặp lại ở status cũ đều không tạo ghi nhận mới.
 
 Tất cả dùng cùng state store.
 
@@ -1573,6 +1830,23 @@ Tạo ít nhất 4 station demo.
 
 ---
 
+## 15.3. Merchants, Products & Orders
+
+Seed tại Trạm Việt Ninh Bình:
+
+| ID | Cửa hàng | Quầy | Món mẫu |
+|---|---|---|---|
+| merchant-com-viet | Cơm Việt | A12 | Cơm gà 75.000đ (12 phút), cà phê sữa 30.000đ (4 phút), nước suối 15.000đ (1 phút) |
+| merchant-pho-viet | Phở Việt | A01 | Phở bò 65.000đ (10 phút), nước suối 15.000đ (1 phút) |
+| merchant-cafe-viet | Cà phê Việt | B02 | Cà phê sữa 30.000đ (4 phút), bánh mì 35.000đ (7 phút) |
+| merchant-dac-san | Đặc sản Việt | C01 | Bánh đặc sản 50.000đ (2 phút), nước suối 15.000đ (1 phút) |
+
+Đây là dữ liệu hư cấu phục vụ demo. Product IDs riêng theo cửa hàng kể cả khi tên món giống nhau. Mỗi món mặc định available=true; có một món hết hàng bổ sung để trình diễn M04. Cửa hàng acceptingOrders=false không nhận checkout mới.
+
+Seed có 17 Order khách với tổng 1.840.000đ cho trip chính; dùng NEW/ACCEPTED/PREPARING/READY để chưa ghi earned revenue cho các đơn này. Có fixture nhiều merchant để kiểm tra split. Nếu cần lịch sử hoàn tất, seed sang trip trước và không gộp vào 17 đơn của trip chính. Snapshot item totals phải khớp Order/MerchantOrder, không tạo KPI giả độc lập.
+
+---
+
 # 16. VISUAL DESIGN DIRECTION
 
 ## 16.1. Brand character
@@ -1642,6 +1916,15 @@ Icons gợi ý:
 Desktop vẫn sử dụng được nhưng không phải ưu tiên chính.
 
 Bottom navigation trên mobile.
+
+## Merchant App
+
+- Test 375px, 390px, 430px; tối ưu terminal khoảng 400–500px.
+- Nút cao tối thiểu 48px, cỡ chữ món/ETA dễ đọc, không phụ thuộc hover.
+- Header và tabs cố định, danh sách cuộn; badge dùng chữ + màu để phân biệt trạng thái.
+- CTA quan trọng dễ chạm, tránh bấm nhầm “Từ chối” và “Nhận đơn”.
+- Desktop preview giữ khung terminal có padding, không kéo thành dashboard rộng.
+- In phiếu mở drawer/modal có preview giấy trắng; không cần mô phỏng vỏ thiết bị phức tạp.
 
 ## Station Portal
 
@@ -1731,12 +2014,15 @@ tram-viet/
 │   │   ├── ordering/
 │   │   ├── partner/
 │   │   ├── earnings/
+│   │   ├── merchant/
 │   │   └── station-portal/
 │   │
 │   ├── demo/
 │   │   ├── users.ts
 │   │   ├── trips.ts
 │   │   ├── stations.ts
+│   │   ├── merchants.ts
+│   │   ├── kitchenTickets.ts
 │   │   ├── products.ts
 │   │   ├── orders.ts
 │   │   ├── routeData.ts
@@ -1750,12 +2036,15 @@ tram-viet/
 │   │
 │   ├── lib/
 │   │   ├── commission.ts
+│   │   ├── merchantOrders.ts
+│   │   ├── preparation.ts
 │   │   ├── demoTime.ts
 │   │   └── format.ts
 │   │
 │   └── pages/
 │       ├── travel/
 │       ├── station/
+│       ├── merchant/
 │       └── demo/
 │
 └── tests/
@@ -1774,6 +2063,9 @@ Ví dụ:
 ```ts
 interface DemoStore {
   currentUserId: string
+  currentActor: 'travel' | 'merchant' | 'station'
+  activeMerchantId: string
+  activeStationId: string
   activeTripId: string
   demoTime: string
   tripState: TripStatus
@@ -1782,11 +2074,18 @@ interface DemoStore {
   trips: Trip[]
   stations: Station[]
   orders: Order[]
+  merchants: Merchant[]
+  products: Product[]
+  merchantOrders: MerchantOrder[]
+  kitchenTickets: KitchenTicket[]
   commissions: Commission[]
 
   joinTrip: (tripId: string) => void
   createOrder: (...) => void
-  updateOrderStatus: (...) => void
+  updateMerchantOrderStatus: (...) => void
+  setProductAvailability: (...) => void
+  printKitchenTicket: (...) => void
+  updateStopArrivalAt: (...) => void
   advanceTrip: (...) => void
   setTripState: (...) => void
   simulateArrival: () => void
@@ -1820,7 +2119,13 @@ Không phân tán business state vào nhiều component local state nếu các s
 | Checkout | Functional |
 | Payment | UI simulation |
 | Order | Functional local state |
-| Station Orders | Functional local state |
+| Station Orders | Giám sát + aggregate shared state |
+| Merchant Login | Local demo credentials, each account maps to one fixed merchant |
+| Merchant Orders | Functional, lọc merchantId; nhận/làm/xong/bàn giao |
+| Preparation countdown | Tính từ demoTime + TripStop ETA + prep time |
+| Kitchen ticket printing | Preview, animation, lỗi/in lại mô phỏng |
+| Menu availability | Shared state, Travel menu/checkout cập nhật |
+| Merchant Today Summary | Selectors từ đơn và ngày demo |
 | Commission | Functional calculation |
 | AI itinerary import | Simulated |
 | Camera recognition | Simulated |
@@ -1846,6 +2151,7 @@ Implement theo phase.
 - Brand header.
 - Travel bottom navigation.
 - Station sidebar.
+- Merchant terminal layout và navigation.
 
 ## Phase 2 – Demo Data & State
 
@@ -1891,7 +2197,16 @@ Implement theo phase.
 - U23 Earnings.
 - Commission rules.
 
-## Phase 7 – Station Portal
+## Phase 7 – Merchant Operations
+
+- M01 Login/demo selector.
+- M02 Orders.
+- M03 Detail, phiếu bếp và in mô phỏng.
+- M04 Menu Availability.
+- M05 Today Summary.
+- ETA preparation schedule, notification và transition rules.
+
+## Phase 8 – Station Portal
 
 - S02 Overview.
 - S03 Incoming Vehicles.
@@ -1902,17 +2217,19 @@ Implement theo phase.
 - S08 Analytics.
 - S09 Commission.
 
-## Phase 8 – Cross-App Demo Logic
+## Phase 9 – Cross-App Demo Logic
 
 Đảm bảo:
 
-- Passenger order → Station order tăng.
-- Revenue tăng.
-- Commission tăng.
+- Passenger checkout → Merchant phần đơn NEW + Station đơn khách tăng.
+- Merchant accept/prepare/ready/pickup → Travel và Station phản ánh cùng status.
+- Expected value và pending commission tại checkout; earned revenue/commission tại pickup.
+- Merchant availability → Travel menu/checkout cập nhật.
+- ETA schedule và printing không tạo ghi nhận tiền trùng.
 - Status order đồng bộ.
 - Trip state đồng bộ.
 
-## Phase 9 – Polish
+## Phase 10 – Polish
 
 - Motion.
 - Loading states.
@@ -1922,7 +2239,7 @@ Implement theo phase.
 - Responsive.
 - Visual consistency.
 
-## Phase 10 – E2E Demo Test
+## Phase 11 – E2E Demo Test
 
 Test complete pitch flow bằng Playwright.
 
@@ -1943,8 +2260,8 @@ Playwright phải test được flow này:
 7. View next stop.
 8. Open station.
 9. Open menu.
-10. Add Cơm gà.
-11. Add Cà phê.
+10. Add 2 × Cơm gà tại Cơm Việt.
+11. Add 1 × Cà phê sữa tại Cơm Việt; tổng 180.000đ.
 12. Open cart.
 13. Checkout.
 14. Select MoMo.
@@ -1952,26 +2269,44 @@ Playwright phải test được flow này:
 16. See payment success.
 17. Open Order Detail.
 
-## Flow B – Station experience
+## Flow B – Merchant experience
 
-1. Open Station Portal.
-2. See incoming Hoàng Long bus.
-3. Open vehicle.
-4. See passenger/order information.
-5. Open Orders.
-6. Find new order.
-7. Move to Preparing.
-8. Move to Ready.
-9. Simulate bus arrival.
-10. Complete order.
+1. M01 đăng nhập bằng tài khoản riêng của Cơm Việt, tự động vào M02 của Cơm Việt.
+2. Thấy phần đơn 180.000đ vừa checkout; cửa hàng khác không thấy phần này.
+3. Nhận đơn → ACCEPTED; preview/in phiếu mô phỏng.
+4. Demo Controller đặt ETA còn 32 phút; prep 12 phút + buffer 3 → nhắc bắt đầu sau 17 phút.
+5. Advance 17 phút; thấy banner đến giờ, bấm Bắt đầu làm → PREPARING.
+6. Advance 12 phút; bấm Đã làm xong → READY, ETA còn 3 phút.
+7. Travel thấy món sẵn sàng/quầy A12; Station thấy readiness.
+8. Simulate arrival, xác nhận mã nhận món rồi Đã bàn giao → PICKED_UP.
+9. In lại không tăng đơn, doanh thu hay commission.
 
-## Flow C – Driver commission
+## Flow C – Station experience
+
+1. Open Station Portal, thấy incoming Hoàng Long và ETA.
+2. Open vehicle, xem passenger/order và breakdown cửa hàng.
+3. Open Orders, tìm đơn vừa tạo, quan sát status do Merchant cập nhật.
+4. Simulate check-in xe; không tự hoàn tất đơn.
+5. Sau Merchant pickup, kiểm tra Sales/Merchant Performance và completed revenue.
+
+## Flow D – Driver commission
 
 1. Switch to Partner Driver demo user.
 2. Open Earnings.
-3. Confirm revenue generated increased.
-4. Confirm commission increased.
+3. Kiểm tra pending commission tại checkout, earned chưa tăng.
+4. Sau pickup đơn 180.000đ, earned commission tăng 9.000đ; pending giảm tương ứng.
 5. Open trip earnings detail.
+
+---
+
+## Flow E – Availability & exceptions
+
+1. Merchant đánh dấu Cơm gà hết món; Travel không thêm/checkout món đó được.
+2. Bật lại, tạo đơn NEW, từ chối kèm lý do; Travel thấy phản hồi, expected value/pending commission loại phần bị từ chối.
+3. Đổi ETA trễ 20 phút: đơn ACCEPTED tính lại giờ bắt đầu; đơn PREPARING giữ trạng thái.
+4. Bật lỗi in, thử in lại; status đơn và tiền không đổi.
+5. Fixture giỏ 2 cửa hàng: mỗi Merchant chỉ thấy phần mình; 1 Order khách, 2 MerchantOrder; bàn giao một quầy chưa hoàn tất toàn Order.
+6. Reset Demo khôi phục seed, thời gian, availability, phiếu in và commission.
 
 ---
 
@@ -1979,7 +2314,7 @@ Playwright phải test được flow này:
 
 ## Product
 
-- Travel App và Station Portal đều truy cập được.
+- Travel App, Merchant App và Station Portal đều truy cập được; tổng 37 màn hình theo screen map.
 - Flow pitch chính hoàn chỉnh.
 - Không cần backend để sử dụng demo.
 - Refresh không làm app crash.
@@ -1997,15 +2332,27 @@ Playwright phải test được flow này:
 ## Commission
 
 - Non-partner order không tạo commission.
-- Partner trip order tạo commission.
-- Commission = eligible order total × rate.
+- Partner trip order tạo pending commission; PICKED_UP tạo earned commission.
+- Commission = eligible phần đơn × rate theo status; không ghi nhận trùng.
 
 ## Station Portal
 
 - Incoming vehicle hiển thị ETA.
 - Vehicle Detail có passenger count và orders.
-- Orders đổi status được.
-- Overview cập nhật metrics theo demo state.
+- Orders phản ánh status do Merchant thay đổi.
+- Overview và Merchant Performance cập nhật từ demo state.
+- Phân biệt số Order khách / MerchantOrder và expected value / completed revenue.
+
+## Merchant App
+
+- M01–M05 bấm được trên mobile/POS preview.
+- Chỉ thấy đúng đơn/món của merchant gắn với tài khoản đã đăng nhập; không có merchant selector.
+- CTA tuân thủ state machine; từ chối có lý do.
+- Nhắc chuẩn bị đúng demoTime và ETA, cập nhật khi ETA thay đổi.
+- Auto-print, print preview, lỗi và in lại được mô phỏng; không đổi tiền/status.
+- Availability phản ánh tới Travel, checkout kiểm tra lại.
+- Pickup cập nhật Travel/Station và earned commission đúng một lần.
+- Today Summary lấy từ đơn thuộc merchant và ngày demo.
 
 ## Demo polish
 
@@ -2013,6 +2360,7 @@ Playwright phải test được flow này:
 - Không console error nghiêm trọng.
 - Không broken layout ở mobile target.
 - Không broken layout ở desktop station target.
+- Không broken layout ở mobile/POS merchant target; đã kiểm tra screenshot cả 3 giao diện.
 
 ---
 
@@ -2040,6 +2388,9 @@ Không implement thật:
 - Inventory management thật.
 - Accounting integration.
 - POS integration.
+- Printer SDK, Bluetooth/Wi-Fi printer connection.
+- Hóa đơn thuế/e-invoice.
+- POS kế toán, tồn kho nguyên liệu đầy đủ.
 
 Có thể tạo UI mô phỏng nếu cần cho pitch.
 
@@ -2091,7 +2442,7 @@ Không coi task hoàn thành nếu build lỗi.
 
 1. Ưu tiên shadcn/ui component trước khi tự build primitive mới.
 2. Travel App mobile-first.
-3. Station Portal desktop-first.
+3. Station Portal desktop-first; Merchant mobile/POS-first, không làm Merchant desktop dashboard riêng.
 4. Không tạo quá nhiều modal nếu có thể dùng page/drawer rõ ràng hơn.
 5. Primary CTA trên mobile phải dễ bấm bằng ngón tay.
 6. Timeline của trip phải dễ scan.
@@ -2112,10 +2463,11 @@ Nếu phải ưu tiên chất lượng UI, thứ tự ưu tiên là:
 4. Share / Join Trip.
 5. Station Menu.
 6. Checkout.
-7. Station Order Management.
-8. Driver Earnings.
-9. Create Trip.
-10. Onboarding.
+7. Merchant Orders + ETA preparation + kitchen ticket.
+8. Station Order Monitoring + Merchant Performance.
+9. Driver Earnings.
+10. Create Trip.
+11. Onboarding.
 
 Lý do:
 
@@ -2166,22 +2518,22 @@ Xem amenities và menu.
 
 ### 6. Hành khách đặt đồ
 
-Order 180.000đ.
+2 × Cơm gà + 1 × Cà phê sữa, tổng 180.000đ tại Cơm Việt.
 
 Payment success được mô phỏng.
 
 ### 7. Station Portal thay đổi
 
 - Orders tăng.
-- Revenue tăng.
+- Giá trị đặt trước tăng từ 1.840.000đ lên 2.020.000đ; 17 → 18 đơn khách.
 - Xe Hoàng Long đang approaching.
 - ETA còn 32 phút.
 
-### 8. Trạm chuẩn bị món
+### 8. Merchant nhận đơn và chuẩn bị món
 
-Order chuyển:
+Chuyển sang terminal Cơm Việt. Đơn NEW xuất hiện, nhận đơn → ACCEPTED, phiếu bếp in mô phỏng.
 
-New → Preparing → Ready.
+ETA 32 phút, prep 12 phút, buffer 3 phút → bắt đầu sau 17 phút. Advance demoTime, Merchant bấm Bắt đầu làm → PREPARING; làm xong → READY. Station theo dõi toàn trạm; khách thấy quầy nhận món.
 
 ### 9. Xe tới
 
@@ -2191,14 +2543,14 @@ Biển số match.
 
 ### 10. Order hoàn thành
 
-Order chuyển Completed.
+Merchant xác nhận mã nhận món, bấm Đã bàn giao → PICKED_UP. Nếu nhiều quầy, mỗi quầy bàn giao riêng.
 
 ### 11. Driver Earnings cập nhật
 
 Driver thấy:
 
 - Revenue generated.
-- Commission earned.
+- Commission earned tăng 9.000đ cho đơn 180.000đ vừa bàn giao.
 
 ### 12. Kết thúc pitch
 
@@ -2213,7 +2565,7 @@ More passengers
 →
 Pre-orders before arrival
 →
-Better station preparation
+ETA-based merchant preparation
 →
 More revenue
 →
@@ -2231,6 +2583,7 @@ Bản demo đầu tiên được xem là đủ tốt khi:
 - Có landing/login entry đẹp.
 - Có Travel App mobile hoàn chỉnh cho happy path.
 - Có Station Portal desktop hoàn chỉnh cho happy path.
+- Có Merchant terminal mobile/POS M01–M05 hoàn chỉnh cho happy path.
 - Có một demo trip Hà Nội → Đà Nẵng.
 - QR/share flow hoạt động.
 - Join trip hoạt động.
@@ -2240,7 +2593,9 @@ Bản demo đầu tiên được xem là đủ tốt khi:
 - Station detail/menu/cart/checkout hoạt động.
 - Order được tạo trong local state.
 - Station nhìn thấy order.
-- Station đổi order status được.
+- Merchant nhận/làm/xong/bàn giao; Station giám sát status.
+- ETA nhắc chuẩn bị, availability và phiếu bếp mô phỏng hoạt động.
+- Giỏ nhiều cửa hàng chia phần đơn đúng; metrics không đếm trùng.
 - Commission được tính theo rule.
 - Driver Earnings phản ánh commission.
 - Demo Controller hoạt động.
