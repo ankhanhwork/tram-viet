@@ -12,7 +12,7 @@
 
 # 1. MỤC TIÊU DỰ ÁN
 
-Trạm Việt là nền tảng hỗ trợ người dùng lên kế hoạch hành trình đường dài, xác định điểm dừng phù hợp, theo dõi lịch trình, chia sẻ chuyến đi và đặt đồ ăn/dịch vụ trước tại các trạm dừng chân.
+Trạm Việt là nền tảng hỗ trợ người dùng lên kế hoạch hành trình đường dài, xác định điểm dừng phù hợp, theo dõi lịch trình và chia sẻ chuyến đi. Hành khách trên xe có thể quét QR để mở hành trình bằng web mobile và đặt trước đồ ăn, đồ uống, đặc sản hoặc đồ dùng tiện ích tại trạm mà không cần tải app hay đăng nhập.
 
 Sản phẩm phục vụ nhiều nhóm người dùng trong cùng một app:
 
@@ -30,9 +30,9 @@ Mọi người dùng đều có thể:
 - Xem các trạm dừng trên tuyến.
 - Xem thời gian dự kiến tới từng điểm.
 - Chia sẻ chuyến đi cho người khác.
-- Tham gia chuyến đi được chia sẻ.
-- Xem menu tại trạm.
-- Đặt đồ ăn trước.
+- Tham gia chuyến đi được chia sẻ khi dùng Travel App có tài khoản; việc quét QR để xem chuyến và đặt hàng không yêu cầu bước này.
+- Xem danh mục sản phẩm tại trạm.
+- Đặt trước đồ ăn, đồ uống, đặc sản và đồ dùng tiện ích.
 - Theo dõi đơn hàng.
 
 Riêng **Tài xế đối tác** được mở thêm các chức năng:
@@ -56,7 +56,7 @@ Bản demo nhằm giúp khách hàng nhìn thấy và hiểu được:
 
 1. Người dùng sẽ sử dụng Trạm Việt như thế nào trong một hành trình thực tế.
 2. Tài xế có thể tạo và chia sẻ chuyến đi như thế nào.
-3. Hành khách có thể tham gia chuyến và đặt đồ trước như thế nào.
+3. Hành khách quét QR trên xe, xem hành trình và đặt hàng trước trên web mobile như thế nào.
 4. Trạm dừng có thể biết trước xe nào sắp đến, có bao nhiêu hành khách và bao nhiêu đơn đặt trước.
 5. Cửa hàng trong trạm nhận đơn, chuẩn bị món theo ETA và bàn giao khi khách tới.
 6. Tài xế đối tác nhận commission như thế nào.
@@ -107,7 +107,7 @@ Bản demo phải tạo cảm giác như một sản phẩm đã hoàn thiện �
 - Lên kế hoạch chuyến đi dễ hơn.
 - Biết các điểm dừng sắp tới.
 - Không phải tìm trạm thủ công.
-- Có thể đặt đồ ăn trước.
+- Có thể xem hành trình từ QR và đặt trước đồ ăn, đồ uống, đặc sản hoặc đồ dùng tiện ích mà không cần cài app.
 - Giảm thời gian chờ tại trạm.
 - Có thể đi cùng một itinerary được người khác chia sẻ.
 
@@ -150,15 +150,16 @@ Có toàn bộ quyền của user bình thường và thêm:
 
 # 4. CẤU TRÚC SẢN PHẨM
 
-Bản demo gồm **3 giao diện trong cùng một frontend demo**:
+Bản demo gồm **3 giao diện vận hành/Travel trong cùng một frontend** và **1 luồng Guest QR Web** mở trực tiếp trên trình duyệt:
 
 | Giao diện | Người dùng | Thiết bị ưu tiên | Trách nhiệm |
 |---|---|---|---|
-| Trạm Việt App / Travel App | Hành khách, người tự lái, mọi loại tài xế | Mobile | Trip, chia sẻ, đặt đồ; Partner Driver có thêm commission |
+| Trạm Việt App / Travel App | Người có tài khoản: người đi đường, người tự lái, mọi loại tài xế | Mobile | Tạo/theo dõi/chia sẻ trip; chủ chuyến check-in tại trạm; Partner Driver có thêm commission |
+| Guest QR Web | Hành khách quét QR trên xe | Mobile browser | Xem hành trình, xem trạm sắp tới, đặt trước và theo dõi/nhận hàng không cần tải app hoặc đăng nhập |
 | Trạm Việt Merchant | Cửa hàng/quầy thuê trong trạm | Mobile / POS cầm tay | Nhận đơn, chuẩn bị, bàn giao, in phiếu mô phỏng |
 | Trạm Việt Station / Station Portal | Chủ/quản lý trạm, quản lý chuỗi | Desktop/tablet landscape | Incoming vehicles, giám sát đơn, hiệu suất cửa hàng, doanh thu và commission |
 
-Travel App vẫn là **một app chung** cho hành khách và tài xế. Merchant là giao diện vận hành của cửa hàng. Station Portal là giao diện quản lý toàn trạm.
+Travel App vẫn là **một app chung** cho người dùng có tài khoản, bao gồm hành khách và tài xế. Guest QR Web là lối vào công khai theo chuyến cho hành khách không có tài khoản, không phải một app cần cài. Merchant là giao diện vận hành của cửa hàng. Station Portal là giao diện quản lý toàn trạm.
 
 ## 4.1. Travel App
 
@@ -172,6 +173,8 @@ Dành cho:
 - Partner driver.
 
 Travel App ưu tiên giao diện mobile-first.
+
+Chủ chuyến/tài xế chia sẻ QR và có CTA check-in khi xe đến điểm dừng. Quyền sửa chuyến, check-in và xem commission không xuất hiện trên Guest QR Web.
 
 Navigation mặc định:
 
@@ -222,6 +225,12 @@ Navigation tối giản:
 Mỗi cửa hàng là một merchant độc lập, có tài khoản đăng nhập riêng được gắn cố định với đúng merchantId. Sau khi đăng nhập, nhân viên đi thẳng vào không gian vận hành của cửa hàng đó. Không có màn chọn cửa hàng/quầy, không hiển thị danh sách cửa hàng khác, và không cho đổi merchant trong phiên Merchant. Header luôn hiển thị danh tính tài khoản, tên cửa hàng, trạm/quầy và trạng thái đang nhận đơn. Desktop chỉ trình bày giao diện này trong khung mobile/POS; không xây dashboard desktop Merchant riêng.
 
 Demo login dùng tài khoản/mật khẩu giả lập riêng cho từng cửa hàng; không có auth/backend thật. Mỗi bộ thông tin đăng nhập ánh xạ tới đúng một merchantId. Phiên Merchant giữ merchantId từ danh tính đăng nhập; logout mới kết thúc phiên. Việc đổi actor trong Demo Controller chỉ vào lại một tài khoản demo xác định trước, không tạo bộ chọn cửa hàng trong Merchant App.
+
+## 4.4. Guest QR Web
+
+QR trên xe mở URL công khai dạng `/t/{publicTripCode}`, ví dụ `tramviet.vn/t/HN-DN-A8K29`. Trình duyệt hiển thị thông tin chuyến, timeline các điểm dừng, ETA và trạm sắp tới trước khi khách vào danh mục mua trước. Khách có thể chọn sản phẩm từ nhiều quầy trong một giỏ, thanh toán mô phỏng một lần, nhận mã theo từng quầy và theo dõi trạng thái từng phần đơn. Không có màn đăng nhập, nút tải app bắt buộc, bottom navigation theo tài khoản hay bước “Tham gia chuyến” chặn checkout.
+
+Khách chỉ được xem dữ liệu công khai của chuyến và đơn phát sinh trong phiên/link của mình. Guest QR Web không cho sửa hành trình, check-in, xem danh sách hành khách hay xem commission. MVP frontend-only chứng minh flow trong cùng phiên trình duyệt; đồng bộ đơn và check-in giữa các thiết bị độc lập cần backend ở giai đoạn pilot.
 
 ---
 
@@ -363,9 +372,9 @@ Có thể dùng localStorage để giữ state khi refresh.
 
 Phải có nút Reset Demo để đưa app về trạng thái ban đầu.
 
-Cả ba giao diện sử dụng cùng Zustand store. Chuyển actor bằng demo selector giữ nguyên dữ liệu chuyến và đơn. Merchant session lấy merchantId từ tài khoản đã đăng nhập, không cho nhân viên chọn hoặc chuyển sang merchant khác trong giao diện Merchant.
+Cả Travel App, Guest QR Web, Merchant App và Station Portal sử dụng cùng Zustand store trong phiên demo. Chuyển actor bằng demo selector giữ nguyên dữ liệu chuyến và đơn. Merchant session lấy merchantId từ tài khoản đã đăng nhập, không cho nhân viên chọn hoặc chuyển sang merchant khác trong giao diện Merchant.
 
-Đồng bộ bắt buộc trong cùng một phiên trình duyệt. Nếu mở nhiều tab cùng origin, có thể dùng storage event/BroadcastChannel và kiểm tra trước khi pitch. Thiết bị khác mở QR chỉ tải được trip seed và có state local riêng; không hứa đồng bộ realtime giữa thiết bị khi chưa có backend.
+Đồng bộ bắt buộc trong cùng một phiên trình duyệt. Nếu mở nhiều tab cùng origin, có thể dùng storage event/BroadcastChannel và kiểm tra trước khi pitch. Thiết bị khác mở QR chỉ tải được trip seed và có state local riêng; không hứa đồng bộ đơn/check-in realtime giữa các thiết bị khi chưa có backend. Giai đoạn pilot đa thiết bị cần API và nơi lưu trạng thái chung; không thay đổi flow QR của khách.
 
 ## 7.3. Không phụ thuộc API ngoài để demo flow chính
 
@@ -429,10 +438,12 @@ Khi mở demo mặc định:
 - Pre-orders: 17.
 - Expected pre-order revenue: 1.840.000đ.
 - Merchant mặc định: Cơm Việt – quầy A12, Trạm Việt Ninh Bình.
-- Cửa hàng demo khác: Phở Việt – A01, Cà phê Việt – B02, Đặc sản Việt – C01.
+- Cửa hàng demo khác: Phở Việt – A01, Cà phê Việt – B02, Siêu thị Trạm Việt – C01 (đặc sản và đồ dùng tiện ích).
 - 17 đơn khách seed được phân bổ về các cửa hàng. Tổng tiền các đơn seed phải đúng 1.840.000đ; số KPI lấy từ dữ liệu, không hard-code riêng ở từng screen.
 - Order 180.000đ trong pitch: 2 × Cơm gà (75.000đ) + 1 × Cà phê sữa (30.000đ), cùng cửa hàng Cơm Việt.
 - Sau order mới: 18 đơn khách, giá trị đặt trước dự kiến 2.020.000đ. Commission dự kiến riêng của đơn mới là 9.000đ; chỉ chuyển thành đã kiếm được sau khi bàn giao thành công.
+
+Mockup Q05–Q10 còn có **fixture nhiều danh mục** để chứng minh giỏ hai quầy: 2 × Cơm gà (150.000đ) + 1 × Cà phê sữa (30.000đ) ở Cơm Việt A12, 1 × Cơm cháy Ninh Bình (65.000đ) + 1 × Khăn giấy (15.000đ) ở Siêu thị Trạm Việt C01. Một Order khách trị giá 260.000đ tách thành hai MerchantOrder 180.000đ và 80.000đ, mỗi quầy có mã nhận riêng. Fixture này là kịch bản thay thế để kiểm thử giỏ nhiều quầy, không được cộng đồng thời vào KPI 17 → 18 đơn / 1.840.000đ → 2.020.000đ của pitch flow 180.000đ. Nếu dùng fixture 260.000đ thay thế, KPI tương ứng là 18 đơn / 2.100.000đ và pending commission của order mới là 13.000đ.
 
 ---
 
@@ -476,12 +487,14 @@ Ví dụ:
 - Badge “Sắp đến trạm”.
 - Countdown nổi bật.
 - Station Portal đưa xe lên đầu danh sách.
+- Travel App của chủ chuyến/tài xế hiển thị CTA “Check-in tại trạm”; bước xác nhận chỉ hoàn thành khi xe đã dừng ở trạm.
 
 ### AT_STATION
 
 - Hiển thị Rest countdown.
-- Station Portal hiển thị “Đã đến”.
-- Merchant có thể bàn giao món READY → PICKED_UP khi khách tới quầy. Trip tới trạm không tự động hoàn tất đơn.
+- Sau khi chủ chuyến/tài xế bấm “Tôi đã đến trạm” và xác nhận, lưu `checkedInAt` cho TripStop; Station Portal hiển thị “Tài xế đã check-in”.
+- Guest QR Web hiển thị xe đã đến và hướng dẫn đến đúng quầy khi phần đơn READY.
+- Merchant chỉ có thể xác nhận mã nhận và chuyển phần đơn READY → PICKED_UP sau check-in của chuyến tại trạm đó. Check-in không tự động hoàn tất đơn hoặc ghi nhận doanh thu/commission.
 
 ### DEPARTED_STATION
 
@@ -522,11 +535,11 @@ Orders
 [ Complete order ]
 
 Vehicle
-[ Simulate arrival ]
+[ Driver check-in / Simulate arrival ]
 [ Simulate departure ]
 
 Camera
-[ Simulate plate detected ]
+[ Simulate plate detected (verification only) ]
 
 Traffic
 [ Add 20-minute delay ]
@@ -544,6 +557,7 @@ Bổ sung controls:
 - Mô phỏng in phiếu thành công hoặc lỗi; in lại.
 - Bật/tắt âm báo và bật/tắt tự in khi nhận đơn.
 - Thay đổi ETA để chứng minh lịch chuẩn bị được tính lại.
+- Mô phỏng thao tác check-in của chủ chuyến/tài xế bằng cùng store action với CTA trong Travel App; việc quét biển số chỉ thêm tín hiệu đối soát.
 
 Demo Controller cập nhật cùng store với Travel App, Merchant App và Station Portal. Controls cũng phải tuân thủ transition hợp lệ; không skip từ NEW sang READY. Reset khôi phục cả món còn bán, đơn, phiếu in, demoTime, actor và commission.
 
@@ -923,197 +937,46 @@ Hiển thị:
 
 QR chứa URL dạng:
 
-`/join/HN-DN-001`
+`/t/HN-DN-A8K29`
 
-Vì trip data nằm trong app static nên URL vẫn mở được trên thiết bị khác nếu app đã deploy.
-
----
-
-## U13 – Join Shared Trip
-
-Khi user mở shared link:
-
-```text
-Nguyễn Văn Minh đã chia sẻ một chuyến đi
-
-HÀ NỘI → ĐÀ NẴNG
-03/10/2026
-07:00 – 20:00
-
-Hoàng Long Express
-29B-123.45
-
-[ Tham gia chuyến ]
-```
-
-Sau khi Join:
-
-- Add trip vào My Trips.
-- Navigate Trip Detail.
+Đây là URL HTTPS public của Guest QR Web. Khách mở bằng trình duyệt, không phải tải app hoặc đăng nhập. Link hiển thị hành trình trước; thao tác tham gia chuyến bằng tài khoản (nếu có) là tùy chọn, không chặn đặt hàng.
 
 ---
 
-## U14 – Station Detail
+## D13–D15 – Driver check-in trong Travel App
 
-Components:
+- D13: Trip Detail của tài xế hiển thị trạm sắp tới, ETA và nút **Check-in tại trạm** khi chuyến đủ điều kiện.
+- D14: Xác nhận đúng trạm/xe/chuyến; bấm check-in ghi `TripStop.checkedInAt` một lần và chuyển trip sang `AT_STATION`.
+- D15: Thành công hiển thị giờ check-in; khách QR, Merchant và Station Portal nhận cùng trạng thái. Bấm lại không tạo sự kiện/doanh thu/commission trùng.
 
-- Hero image.
-- Station name.
-- Location.
-- ETA from current route.
-- Facilities.
-- Opening hours demo.
-- Rating demo.
-- Menu preview.
-- Promotions.
-
-CTA:
-
-- View Menu.
-- Add to Trip.
+Station Portal chỉ quan sát và đối soát check-in. Camera nhận diện biển số là minh họa/kiểm tra phụ, không phải điều kiện hoặc thao tác xác nhận chính.
 
 ---
 
-## U15 – Menu
+## Q01–Q10 – Guest QR Web screen map
 
-Categories:
+QR public đi vào **hành trình trước, đặt hàng sau**. Khách không cần cài Travel App, đăng nhập hoặc bấm Join Trip. Tên/mã phiên khách có thể lấy tối giản ở checkout để tra đơn trên cùng thiết bị; link đơn/mã nhận hàng cho phép quay lại.
 
-- Món ăn.
-- Đồ uống.
-- Ăn nhanh.
-- Đặc sản.
+| Màn | Nội dung và hành động chính |
+|---|---|
+| Q01 QR landing | Tên miền HTTPS rõ ràng, nhận diện chuyến, hành trình và nút Xem hành trình. |
+| Q02 Tổng quan hành trình | Tuyến, xe, tài xế, trạm dừng sắp tới, ETA; CTA Xem trạm. |
+| Q03 Chi tiết chặng/trạm | Thời gian đến dự kiến, vị trí trạm, tiện ích và CTA Khám phá sản phẩm. |
+| Q04 Trạm dừng | Thông tin trạm, các quầy và khu **Siêu thị Trạm Việt**; chuyển vào danh mục. |
+| Q05 Danh mục | Món ăn, đồ uống, đặc sản và hàng tiện ích/đồ khác; thẻ sản phẩm có ảnh, giá, quầy, trạng thái và thời gian chuẩn bị/đóng gói. |
+| Q06 Chi tiết món ăn | Ảnh **Cơm gà** của Cơm Việt · A12, 75.000đ, số lượng, ghi chú, thời gian chuẩn bị, nút thêm giỏ. Không dùng ảnh đặc sản ở Q06. |
+| Q07 Giỏ hàng | Nhóm sản phẩm theo quầy; một giỏ có thể gồm cả món ăn, đồ uống, đặc sản, hàng tiện ích. |
+| Q08 Checkout | Trạm lấy, ETA, thông tin nhận tối giản, tổng tiền và phương thức thanh toán mô phỏng. |
+| Q09 Đặt hàng thành công | Mã đơn, thông tin trạm/quầy, hướng dẫn chờ check-in và nhận hàng. |
+| Q10 Theo dõi/nhận hàng | Trạng thái theo từng quầy, mã nhận hàng; chỉ bàn giao sau check-in của tài xế. |
 
-Product card:
-
-- Image.
-- Name.
-- Price.
-- Prep time.
-- Popular badge.
-- Tên cửa hàng, mã quầy và trạng thái còn bán/hết món.
-
-Example products:
-
-- Phở bò – 65.000đ.
-- Cơm gà – 75.000đ.
-- Bánh mì – 35.000đ.
-- Cà phê sữa – 30.000đ.
-- Nước suối – 15.000đ.
+Checkout tạo **một Order khách** và **một MerchantOrder cho mỗi quầy**. Với giỏ chuẩn 2 Cơm gà + 1 Cà phê sữa tại A12, tổng là 180.000đ; đây là flow pitch chính. Fixture nhiều quầy 260.000đ ở mục 8 dùng để kiểm thử riêng. Thanh toán chỉ là UI simulation, không gọi cổng thanh toán. Checkout tăng giá trị đặt trước/commission dự kiến; chỉ `PICKED_UP` tăng doanh thu hoàn tất/commission đã kiếm.
 
 ---
 
-## U16 – Product Detail
+## U21–U23 – Hồ sơ và quyền đối tác trong Travel App của tài xế
 
-- Product image.
-- Name.
-- Price.
-- Description.
-- Quantity.
-- Notes.
-- Add to Cart.
-
----
-
-## U17 – Cart
-
-Items được nhóm theo cửa hàng và hiển thị quầy lấy món. Nếu giỏ có nhiều cửa hàng, checkout tạo một Order khách với các MerchantOrder riêng cho từng cửa hàng (xem mục 12A.3). Không tính một MerchantOrder thành một đơn khách mới.
-
-Hiển thị:
-
-- Station.
-- Upcoming arrival.
-- Items.
-- Quantity.
-- Subtotal.
-- Total.
-
-Thông báo:
-
-**Đơn hàng sẽ được chuẩn bị trước khi bạn đến trạm.**
-
-CTA:
-
-- Checkout.
-
----
-
-## U18 – Checkout
-
-Fields/UI:
-
-- Pickup station.
-- Estimated arrival.
-- Order summary.
-- Payment method.
-
-Payment methods UI-only:
-
-- MoMo.
-- VNPay.
-- Cash.
-- Credit Card.
-
-CTA:
-
-`Thanh toán 180.000đ`
-
-Khi bấm:
-
-- Simulate 1–2 step loading.
-- Show success.
-- Create order in Zustand/local state.
-- Update order counters.
-- Update station expected pre-order value.
-- Tạo MerchantOrder trạng thái NEW cho từng cửa hàng có món trong giỏ.
-- Nếu trip commission eligible → update pending commission. Chưa ghi nhận earned commission/doanh thu đã hoàn tất tại checkout.
-
-Không gọi payment gateway.
-
----
-
-## U19 – Order Detail
-
-Status timeline:
-
-```text
-Đã đặt (NEW)
-↓
-Đã nhận (ACCEPTED)
-↓
-Đang làm (PREPARING)
-↓
-Sẵn sàng lấy món (READY)
-↓
-Đã nhận món (PICKED_UP)
-```
-
-Hiển thị:
-
-- Order ID.
-- Station.
-- Items.
-- Total.
-- ETA to station.
-
----
-
-Nếu nhiều cửa hàng, hiển thị trạng thái và mã nhận món theo từng quầy. Đơn chỉ hoàn tất khi mọi phần không bị từ chối đã được bàn giao; phần bị từ chối hiển thị lý do và hoàn tiền mô phỏng nếu đã trả trước.
-
-## U20 – Orders
-
-Tabs:
-
-- Active.
-- Completed.
-
-Order card:
-
-- Station.
-- Status.
-- Total.
-- Pickup ETA.
-
----
+Ba màn U21–U23 thuộc **cùng Travel App đăng nhập của tài xế**, tham chiếu mockup `screen/driver/U21-U23-profile-partner-earnings.png`. Đây không phải màn Guest QR Web, Merchant hay Station Portal. U21 là hồ sơ chung; U22–U23 là phần mở rộng dành cho tài xế đối tác. Không tạo app tài xế thứ hai chỉ vì nhóm màn này.
 
 ## U21 – Profile
 
@@ -1129,7 +992,7 @@ Common user:
 CTA:
 
 - Edit Profile.
-- Become a Partner Driver.
+- Become a Partner Driver **chỉ khi chưa là đối tác được duyệt**; tài xế `APPROVED` thấy CTA quản lý/xem hồ sơ đối tác thay vì lời mời đăng ký lại.
 
 Partner driver:
 
@@ -1145,7 +1008,7 @@ Hiển thị thêm:
 
 ## U22 – Partner Driver
 
-Screen mô phỏng onboarding partner.
+Màn hồ sơ và trạng thái hợp tác của tài xế trong Travel App. Nhánh chưa được duyệt có thể mô phỏng onboarding; fixture pitch của Nguyễn Văn Minh là `APPROVED` nên hiển thị thông tin tài xế/nhà xe và hồ sơ xác minh, không bắt đầu onboarding lại.
 
 Sections:
 
@@ -1172,7 +1035,7 @@ Commission rate: 5%
 
 ## U23 – Earnings
 
-Chỉ xuất hiện với Partner Driver.
+Chỉ xuất hiện với Partner Driver `APPROVED` trong Travel App; vào từ U21/U22 hoặc mục earnings của chuyến. Không hiển thị cho khách Guest QR hay tài xế chưa được duyệt.
 
 KPIs:
 
@@ -1304,40 +1167,31 @@ Orders for this vehicle.
 
 CTA:
 
-- Confirm Arrival.
+- Xem trạng thái check-in của tài xế.
 
 ---
 
 ## S05 – Vehicle Check-in
 
-Mô phỏng camera recognition.
+Màn đối soát sự kiện check-in từ Travel App của tài xế; Station không xác nhận xe đến thay tài xế.
 
 UI:
 
 ```text
-Vehicle Detection
+Driver check-in received
 
-Camera Gate 01
+29B-123.45 · Trạm Việt Ninh Bình
 
-Scanning...
-
-29B-123.45 detected
-
-Expected vehicle
-29B-123.45
-
-MATCHED ✓
+CHECKED IN ✓
 
 Driver: Nguyễn Văn Minh
 Passengers: 42
 Orders: 18
 
-[ Confirm Check-in ]
+[ Xem đơn chờ nhận ]
 ```
 
-Không camera thật.
-
-Có animation scanning.
+Camera/biển số có thể hiển thị như tín hiệu kiểm tra phụ mô phỏng; không tạo check-in thứ hai. Giờ check-in lấy từ `TripStop.checkedInAt`.
 
 ---
 
@@ -1445,7 +1299,7 @@ Settlement chỉ là UI.
 
 # 12A. MERCHANT APP – SCREEN MAP VÀ VẬN HÀNH
 
-Bổ sung **5 màn hình M01–M05**, tổng cộng **37 màn hình**: 23 Travel + 9 Station + 5 Merchant. Modal chi tiết phiếu in là state trong M03, không cần screen mới.
+Bổ sung **5 màn hình M01–M05**. Guest QR Web Q01–Q10 và Driver check-in D13–D15 là các flow riêng; không dùng tổng số màn cũ để kiểm scope. Modal chi tiết phiếu in là state trong M03, không cần screen mới.
 
 ## M01 – Merchant Login
 
@@ -1453,7 +1307,7 @@ Bổ sung **5 màn hình M01–M05**, tổng cộng **37 màn hình**: 23 Travel
 - Trường tên đăng nhập/email và mật khẩu; CTA “Đăng nhập”.
 - Tài khoản demo mặc định được cấp sẵn cho Cơm Việt – quầy A12, Trạm Việt Ninh Bình; có thể hiển thị gợi ý thông tin đăng nhập cho buổi demo nhưng không cung cấp danh sách/bộ chọn merchant.
 - Mỗi tài khoản Merchant ánh xạ cố định tới đúng một merchantId và sau đăng nhập chuyển thẳng vào M02 của cửa hàng đó.
-- Không có lựa chọn Cơm Việt/Phở Việt/Cà phê Việt/Đặc sản Việt, không có chuyển quầy/cửa hàng từ header hoặc profile. Các cửa hàng khác chỉ truy cập bằng thông tin đăng nhập riêng của chính họ.
+- Không có lựa chọn Cơm Việt/Phở Việt/Cà phê Việt/Siêu thị Trạm Việt, không có chuyển quầy/cửa hàng từ header hoặc profile. Các cửa hàng khác chỉ truy cập bằng thông tin đăng nhập riêng của chính họ.
 - Login được mô phỏng local, không auth/backend thật. Đăng xuất quay lại M01; đăng nhập không thay đổi dữ liệu đơn.
 
 ## M02 – Orders / Màn hình terminal chính
@@ -1476,7 +1330,7 @@ Mỗi card có:
 | NEW | Từ chối | Modal chọn lý do → REJECTED; khách thấy phản hồi |
 | ACCEPTED | Bắt đầu làm | PREPARING; lưu thời điểm bắt đầu |
 | PREPARING | Đã làm xong | READY; khách thấy quầy và mã nhận món |
-| READY | Đã bàn giao | Xác nhận mã nhận món → PICKED_UP |
+| READY | Đã bàn giao | Chỉ bật sau driver check-in đúng trạm; xác nhận mã nhận hàng → PICKED_UP |
 | PICKED_UP / REJECTED | Xem chi tiết | Chỉ đọc lịch sử; có thể xem/in lại phiếu |
 
 Đơn mới hiện banner và badge. Âm báo mô phỏng chỉ chạy sau thao tác người dùng bật âm; nếu browser chặn, vẫn có phản hồi trực quan. Không cần push notification thật.
@@ -1594,9 +1448,9 @@ interface KitchenTicket {
 }
 ```
 
-Product bổ sung merchantId, stationId, prepMinutes, available. Order khách có merchantOrderIds, tripId, stationId, customerUserId, total và paymentStatus mô phỏng. OrderItemSnapshot lưu tên món, giá, số lượng, ghi chú tại checkout; chỉnh menu không làm đổi đơn cũ.
+Product bổ sung merchantId, stationId, category (`FOOD`/`DRINK`/`SPECIALTY`/`CONVENIENCE`/`OTHER`), prepMinutes hoặc packingMinutes và available. Order khách có merchantOrderIds, tripId, stationId, `customerUserId?` (có tài khoản) hoặc `guestSessionId?` (QR web), publicOrderCode, total và paymentStatus mô phỏng. OrderItemSnapshot lưu tên sản phẩm, giá, số lượng, ghi chú tại checkout; chỉnh catalog không làm đổi đơn cũ.
 
-TripStop cần có id, stationId (nếu là trạm), arrivalAt (ISO datetime) và restMinutes. Khi khởi tạo scenario, demoTime là 08:33 ngày 03/10/2026 theo Asia/Ho_Chi_Minh; arrivalAt trạm Ninh Bình là 09:15 cùng ngày, ETA 42 phút.
+Trip có `publicTripCode` cho QR URL. TripStop cần có id, stationId (nếu là trạm), arrivalAt (ISO datetime), restMinutes và `checkedInAt?`. Khi khởi tạo scenario, demoTime là 08:33 ngày 03/10/2026 theo Asia/Ho_Chi_Minh; arrivalAt trạm Ninh Bình là 09:15 cùng ngày, ETA 42 phút.
 
 ETA lấy từ TripStop, không lưu nhiều bản ETA độc lập trên Order/MerchantOrder. Status tổng hợp của Order lấy từ các phần: nếu mọi phần REJECTED → bị từ chối; nếu mọi phần PICKED_UP/REJECTED và ít nhất một phần PICKED_UP → hoàn tất (ghi rõ phần bị từ chối); nếu các phần còn hiệu lực đều READY/PICKED_UP → sẵn sàng; các tổ hợp khác hiện tiến độ theo từng quầy, không giả định tất cả đã xong.
 
@@ -1624,13 +1478,13 @@ Không yêu cầu user phải là driver.
 
 Mọi owner đều có thể share trip.
 
-## BR03 – Universal Join
+## BR03 – Guest QR access và optional Join
 
-Mọi user đều có thể join trip qua link/QR.
+Mọi khách có link/QR public đều xem hành trình và đặt hàng bằng browser, không đăng nhập hoặc Join. User có tài khoản có thể chọn lưu/Join trip vào My Trips, nhưng đây là nhánh tùy chọn.
 
 ## BR04 – Universal Ordering
 
-Mọi user đang có trip có station trong itinerary đều có thể đặt hàng.
+Khách QR hoặc user trong Travel App đều có thể đặt trước tại trạm thuộc itinerary. Danh mục bao gồm FOOD, DRINK, SPECIALTY và CONVENIENCE/OTHER; checkout nhiều quầy vẫn là một Order khách.
 
 ## BR05 – Commission Eligibility
 
@@ -1700,11 +1554,15 @@ Lịch làm món lấy từ ETA của TripStop và prep time của phần đơn.
 
 ## BR13 – Fulfillment & Print
 
-MerchantOrder tuân thủ NEW → ACCEPTED → PREPARING → READY → PICKED_UP; chỉ NEW được REJECTED. In phiếu độc lập với fulfillment, không có printer integration thật.
+MerchantOrder tuân thủ NEW → ACCEPTED → PREPARING → READY → PICKED_UP; chỉ NEW được REJECTED. `READY` chỉ được `PICKED_UP` sau khi tài xế check-in tại đúng TripStop và Merchant xác nhận mã nhận hàng. In phiếu độc lập với fulfillment, không có printer integration thật.
 
 ## BR14 – Availability & Accounting
 
-Món hết hàng không được checkout; đơn đã nhận giữ nguyên. Metrics và commission lấy từ shared selectors, đếm đơn khách và phần đơn quầy riêng, không tăng tiền do in lại hoặc lặp thao tác.
+Sản phẩm hết hàng không được checkout; đơn đã nhận giữ nguyên. Metrics và commission lấy từ shared selectors, đếm đơn khách và phần đơn quầy riêng, không tăng tiền do in lại hoặc lặp thao tác.
+
+## BR15 – Driver check-in
+
+Chỉ tài xế/owner chuyến hợp lệ bấm check-in ở Travel App khi tới đúng trạm. Thao tác ghi `checkedInAt`, đổi trip sang `AT_STATION` và đồng bộ Guest QR, Merchant, Station. Lặp lại là idempotent; check-in không tự hoàn tất đơn hay ghi nhận doanh thu/commission. Camera Station chỉ đối soát.
 
 ---
 
@@ -1839,7 +1697,7 @@ Seed tại Trạm Việt Ninh Bình:
 | merchant-com-viet | Cơm Việt | A12 | Cơm gà 75.000đ (12 phút), cà phê sữa 30.000đ (4 phút), nước suối 15.000đ (1 phút) |
 | merchant-pho-viet | Phở Việt | A01 | Phở bò 65.000đ (10 phút), nước suối 15.000đ (1 phút) |
 | merchant-cafe-viet | Cà phê Việt | B02 | Cà phê sữa 30.000đ (4 phút), bánh mì 35.000đ (7 phút) |
-| merchant-dac-san | Đặc sản Việt | C01 | Bánh đặc sản 50.000đ (2 phút), nước suối 15.000đ (1 phút) |
+| merchant-sieu-thi-tram-viet | Siêu thị Trạm Việt | C01 | Cơm cháy 65.000đ (đặc sản, đóng gói 2 phút), khăn giấy 15.000đ (hàng tiện ích, 1 phút) |
 
 Đây là dữ liệu hư cấu phục vụ demo. Product IDs riêng theo cửa hàng kể cả khi tên món giống nhau. Mỗi món mặc định available=true; có một món hết hàng bổ sung để trình diễn M04. Cửa hàng acceptingOrders=false không nhận checkout mới.
 
@@ -2063,7 +1921,7 @@ Ví dụ:
 ```ts
 interface DemoStore {
   currentUserId: string
-  currentActor: 'travel' | 'merchant' | 'station'
+  currentActor: 'travel' | 'guest-qr' | 'merchant' | 'station'
   activeMerchantId: string
   activeStationId: string
   activeTripId: string
@@ -2081,6 +1939,8 @@ interface DemoStore {
   commissions: Commission[]
 
   joinTrip: (tripId: string) => void
+  checkInTripStop: (tripId: string, stationId: string) => void
+  getGuestOrder: (publicOrderCode: string) => Order | undefined
   createOrder: (...) => void
   updateMerchantOrderStatus: (...) => void
   setProductAvailability: (...) => void
@@ -2088,7 +1948,7 @@ interface DemoStore {
   updateStopArrivalAt: (...) => void
   advanceTrip: (...) => void
   setTripState: (...) => void
-  simulateArrival: () => void
+  simulateArrival: () => void // Demo Controller kích hoạt cùng action check-in của tài xế
   resetDemo: () => void
 }
 ```
@@ -2110,11 +1970,12 @@ Không phân tán business state vào nhiều component local state nếu các s
 | Stop Recommendation | Predefined rules/data |
 | ETA | Simulated |
 | Live GPS | Animated route progress |
-| QR | QR thật client-side |
-| Join Trip | Functional local state |
+| QR guest web | QR thật tới URL HTTPS public `/t/{publicTripCode}`, hành trình trước danh mục |
+| Guest access | Không cài app/đăng nhập; session/link đơn tối giản |
+| Join Trip | Nhánh tài khoản tùy chọn, không chặn guest order |
 | My Trips | Functional |
 | Station Detail | Functional |
-| Menu | Functional |
+| Catalog | FOOD, DRINK, SPECIALTY, CONVENIENCE/OTHER; trạng thái theo quầy |
 | Cart | Functional |
 | Checkout | Functional |
 | Payment | UI simulation |
@@ -2124,11 +1985,12 @@ Không phân tán business state vào nhiều component local state nếu các s
 | Merchant Orders | Functional, lọc merchantId; nhận/làm/xong/bàn giao |
 | Preparation countdown | Tính từ demoTime + TripStop ETA + prep time |
 | Kitchen ticket printing | Preview, animation, lỗi/in lại mô phỏng |
-| Menu availability | Shared state, Travel menu/checkout cập nhật |
+| Product availability | Shared state, Guest QR/Travel catalog và checkout cập nhật |
 | Merchant Today Summary | Selectors từ đơn và ngày demo |
 | Commission | Functional calculation |
 | AI itinerary import | Simulated |
-| Camera recognition | Simulated |
+| Driver check-in | Travel App action idempotent, đồng bộ các bề mặt |
+| Camera recognition | Đối soát phụ mô phỏng tại Station |
 | Notifications | UI simulation |
 | Settlement | UI only |
 | Analytics | Demo data |
@@ -2168,7 +2030,8 @@ Implement theo phase.
 - U10 Trip Detail.
 - U11 Live Journey.
 - U12 Share Trip.
-- U13 Join Trip.
+- D13–D15 Driver check-in.
+- Q01–Q03 QR landing và hành trình guest web.
 
 Đây là vertical slice đầu tiên phải hoàn thiện.
 
@@ -2182,13 +2045,7 @@ Implement theo phase.
 
 ## Phase 5 – Ordering
 
-- U14 Station Detail.
-- U15 Menu.
-- U16 Product Detail.
-- U17 Cart.
-- U18 Checkout.
-- U19 Order Detail.
-- U20 Orders.
+- Q04–Q10 trạm, catalog đủ nhóm hàng, món ăn Q06, giỏ, checkout và theo dõi đơn.
 
 ## Phase 6 – Partner Driver
 
@@ -2224,7 +2081,8 @@ Implement theo phase.
 - Passenger checkout → Merchant phần đơn NEW + Station đơn khách tăng.
 - Merchant accept/prepare/ready/pickup → Travel và Station phản ánh cùng status.
 - Expected value và pending commission tại checkout; earned revenue/commission tại pickup.
-- Merchant availability → Travel menu/checkout cập nhật.
+- Merchant availability → Guest QR catalog/checkout và Travel catalog cập nhật.
+- Driver check-in → Guest, Merchant, Station cùng nhận trạng thái; Merchant READY mới được bàn giao.
 - ETA schedule và printing không tạo ghi nhận tiền trùng.
 - Status order đồng bộ.
 - Trip state đồng bộ.
@@ -2251,15 +2109,15 @@ Playwright phải test được flow này:
 
 ## Flow A – Passenger experience
 
-1. Open app.
-2. Enter Home.
-3. Open shared trip.
-4. Join trip.
-5. Open My Trips.
-6. Open Hà Nội → Đà Nẵng.
-7. View next stop.
-8. Open station.
-9. Open menu.
+1. Tài xế chia sẻ QR/link HTTPS của chuyến Hà Nội → Đà Nẵng.
+2. Khách quét QR, mở Guest QR Web trên trình duyệt, không cài app/đăng nhập.
+3. Xem tổng quan hành trình và trạm sắp tới trước khi vào mua hàng.
+4. Mở trạm và catalog gồm món ăn, đồ uống, đặc sản và hàng tiện ích.
+5. Mở Q06 chi tiết Cơm gà tại Cơm Việt · A12.
+6. Xem ETA và quầy nhận.
+7. Chọn số lượng.
+8. Thêm vào giỏ.
+9. Tiếp tục xem catalog.
 10. Add 2 × Cơm gà tại Cơm Việt.
 11. Add 1 × Cà phê sữa tại Cơm Việt; tổng 180.000đ.
 12. Open cart.
@@ -2278,7 +2136,7 @@ Playwright phải test được flow này:
 5. Advance 17 phút; thấy banner đến giờ, bấm Bắt đầu làm → PREPARING.
 6. Advance 12 phút; bấm Đã làm xong → READY, ETA còn 3 phút.
 7. Travel thấy món sẵn sàng/quầy A12; Station thấy readiness.
-8. Simulate arrival, xác nhận mã nhận món rồi Đã bàn giao → PICKED_UP.
+8. Tài xế bấm Check-in trong Travel App; sau đó Merchant xác nhận mã nhận hàng rồi Đã bàn giao → PICKED_UP.
 9. In lại không tăng đơn, doanh thu hay commission.
 
 ## Flow C – Station experience
@@ -2286,7 +2144,7 @@ Playwright phải test được flow này:
 1. Open Station Portal, thấy incoming Hoàng Long và ETA.
 2. Open vehicle, xem passenger/order và breakdown cửa hàng.
 3. Open Orders, tìm đơn vừa tạo, quan sát status do Merchant cập nhật.
-4. Simulate check-in xe; không tự hoàn tất đơn.
+4. Quan sát sự kiện driver check-in trên Station Portal; camera nếu có chỉ đối soát, không tự hoàn tất đơn.
 5. Sau Merchant pickup, kiểm tra Sales/Merchant Performance và completed revenue.
 
 ## Flow D – Driver commission
@@ -2301,11 +2159,11 @@ Playwright phải test được flow này:
 
 ## Flow E – Availability & exceptions
 
-1. Merchant đánh dấu Cơm gà hết món; Travel không thêm/checkout món đó được.
+1. Merchant đánh dấu Cơm gà hết món; Guest QR và Travel không thêm/checkout món đó được.
 2. Bật lại, tạo đơn NEW, từ chối kèm lý do; Travel thấy phản hồi, expected value/pending commission loại phần bị từ chối.
 3. Đổi ETA trễ 20 phút: đơn ACCEPTED tính lại giờ bắt đầu; đơn PREPARING giữ trạng thái.
 4. Bật lỗi in, thử in lại; status đơn và tiền không đổi.
-5. Fixture giỏ 2 cửa hàng: mỗi Merchant chỉ thấy phần mình; 1 Order khách, 2 MerchantOrder; bàn giao một quầy chưa hoàn tất toàn Order.
+5. Fixture giỏ 2 cửa hàng: 2 Cơm gà + Cà phê sữa (A12, 180.000đ) và Cơm cháy + khăn giấy (C01, 80.000đ), tổng 260.000đ; mỗi Merchant chỉ thấy phần mình; 1 Order khách, 2 MerchantOrder; bàn giao một quầy chưa hoàn tất toàn Order. Fixture này tách khỏi flow pitch 180.000đ.
 6. Reset Demo khôi phục seed, thời gian, availability, phiếu in và commission.
 
 ---
@@ -2314,7 +2172,7 @@ Playwright phải test được flow này:
 
 ## Product
 
-- Travel App, Merchant App và Station Portal đều truy cập được; tổng 37 màn hình theo screen map.
+- Travel App, Guest QR Web, Merchant App và Station Portal đều truy cập được theo screen map tương ứng.
 - Flow pitch chính hoàn chỉnh.
 - Không cần backend để sử dụng demo.
 - Refresh không làm app crash.
@@ -2327,7 +2185,14 @@ Playwright phải test được flow này:
 - User bình thường share trip được.
 - User bình thường đặt đồ được.
 - Truck driver dùng được cùng flow.
+- Tài xế check-in đúng trạm một lần; Station/Guest/Merchant đồng bộ trạng thái.
 - Partner Driver có thêm Earnings.
+
+## Guest QR Web
+
+- QR mở URL HTTPS public có tên miền rõ, vào hành trình trước catalog, không cần tải app/đăng nhập/Join.
+- Q06 chi tiết Cơm gà của A12; các nhóm hàng khác vẫn mua được trong cùng giỏ.
+- Checkout tạo một Order khách, chia MerchantOrder theo quầy; khách tra cứu trạng thái/mã nhận hàng bằng link hoặc mã đơn.
 
 ## Commission
 
@@ -2340,6 +2205,7 @@ Playwright phải test được flow này:
 - Incoming vehicle hiển thị ETA.
 - Vehicle Detail có passenger count và orders.
 - Orders phản ánh status do Merchant thay đổi.
+- S05 nhận check-in từ tài xế; camera nếu có chỉ đối soát.
 - Overview và Merchant Performance cập nhật từ demo state.
 - Phân biệt số Order khách / MerchantOrder và expected value / completed revenue.
 
@@ -2350,7 +2216,8 @@ Playwright phải test được flow này:
 - CTA tuân thủ state machine; từ chối có lý do.
 - Nhắc chuẩn bị đúng demoTime và ETA, cập nhật khi ETA thay đổi.
 - Auto-print, print preview, lỗi và in lại được mô phỏng; không đổi tiền/status.
-- Availability phản ánh tới Travel, checkout kiểm tra lại.
+- Availability phản ánh tới Guest QR và Travel, checkout kiểm tra lại.
+- READY không thể bàn giao trước check-in của tài xế.
 - Pickup cập nhật Travel/Station và earned commission đúng một lần.
 - Today Summary lấy từ đơn thuộc merchant và ngày demo.
 
@@ -2360,7 +2227,7 @@ Playwright phải test được flow này:
 - Không console error nghiêm trọng.
 - Không broken layout ở mobile target.
 - Không broken layout ở desktop station target.
-- Không broken layout ở mobile/POS merchant target; đã kiểm tra screenshot cả 3 giao diện.
+- Không broken layout ở mobile/POS merchant và Guest QR target; kiểm tra screenshot cả bốn bề mặt.
 
 ---
 
@@ -2460,8 +2327,8 @@ Nếu phải ưu tiên chất lượng UI, thứ tự ưu tiên là:
 1. Station Overview.
 2. Trip Detail.
 3. Live Journey.
-4. Share / Join Trip.
-5. Station Menu.
+4. Share QR / Guest itinerary.
+5. Guest catalog đa nhóm hàng.
 6. Checkout.
 7. Merchant Orders + ETA preparation + kitchen ticket.
 8. Station Order Monitoring + Merchant Performance.
@@ -2499,11 +2366,11 @@ Trạm Việt Ninh Bình và Trạm Việt Nghệ An được thêm vào itinera
 
 ### 3. Tài xế chia sẻ QR
 
-Hành khách scan QR và tham gia chuyến.
+Hành khách scan QR, mở trang HTTPS trên trình duyệt mà không tải app hoặc đăng nhập.
 
 ### 4. Hành khách xem chuyến
 
-App hiển thị:
+Guest QR Web hiển thị trước khi vào đặt hàng:
 
 - Xe đang ở đâu.
 - Điểm tiếp theo.
@@ -2514,7 +2381,7 @@ App hiển thị:
 
 Mở Trạm Việt Ninh Bình.
 
-Xem amenities và menu.
+Xem tiện ích, các quầy và catalog gồm món ăn, đồ uống, đặc sản, hàng tiện ích.
 
 ### 6. Hành khách đặt đồ
 
@@ -2537,9 +2404,7 @@ ETA 32 phút, prep 12 phút, buffer 3 phút → bắt đầu sau 17 phút. Advan
 
 ### 9. Xe tới
 
-Camera check-in được mô phỏng.
-
-Biển số match.
+Tài xế bấm **Check-in tại trạm** trong Travel App. Guest QR, Merchant và Station đồng bộ trạng thái; camera/biển số ở Station nếu có chỉ là đối soát mô phỏng.
 
 ### 10. Order hoàn thành
 
@@ -2581,19 +2446,20 @@ More incentive to return
 Bản demo đầu tiên được xem là đủ tốt khi:
 
 - Có landing/login entry đẹp.
-- Có Travel App mobile hoàn chỉnh cho happy path.
+- Có Travel App mobile hoàn chỉnh cho tài xế, gồm QR share và check-in.
+- Có Guest QR Web mở bằng HTTPS, xem hành trình trước khi đặt hàng, không yêu cầu cài app/đăng nhập.
 - Có Station Portal desktop hoàn chỉnh cho happy path.
 - Có Merchant terminal mobile/POS M01–M05 hoàn chỉnh cho happy path.
 - Có một demo trip Hà Nội → Đà Nẵng.
-- QR/share flow hoạt động.
-- Join trip hoạt động.
+- QR/share flow public hoạt động và hiện rõ tên miền trên Q01.
+- Join trip cho tài khoản là tùy chọn; guest order không phụ thuộc Join.
 - My Trips hoạt động.
 - Trip timeline hoạt động.
 - Live trip được simulate.
-- Station detail/menu/cart/checkout hoạt động.
+- Station detail/catalog đa nhóm hàng/cart/checkout hoạt động; Q06 là chi tiết Cơm gà.
 - Order được tạo trong local state.
 - Station nhìn thấy order.
-- Merchant nhận/làm/xong/bàn giao; Station giám sát status.
+- Merchant nhận/làm/xong; chỉ bàn giao sau driver check-in, Station giám sát status.
 - ETA nhắc chuẩn bị, availability và phiếu bếp mô phỏng hoạt động.
 - Giỏ nhiều cửa hàng chia phần đơn đúng; metrics không đếm trùng.
 - Commission được tính theo rule.
