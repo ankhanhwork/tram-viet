@@ -27,11 +27,11 @@ The driver can plan/edit a trip, share its QR, check in, and view trip-attribute
 
 ## `guest-qr/` — Passenger QR Mobile Web
 
-This is a no-login, no-install browser journey. It has no profile, bottom navigation, passenger list, or driver controls.
+QR opens the shared trip directly in Travel App when the app is installed. Otherwise it opens this mobile browser journey. Q01 identifies the shared trip and collects the guest's full name; phone number is optional. Existing account holders can sign in from Q01 and continue in the normal logged-in Travel App flow. Guests can continue in the browser without installing the app or signing in. This flow has no profile, bottom navigation, passenger list, or driver controls.
 
 The presentation sheets are in `guest-qr/`, with 2–3 screens per sheet at near-native screen resolution. `guest-qr/screens/` contains the individual full-resolution sources for zooming and future edits.
 
-1. `Q01-Q03-qr-itinerary-next-stop.png` — QR landing, full itinerary, and upcoming station. Q01 visibly shows `tramviet.vn/t/HN-DN-A8K29` in the browser address bar.
+1. `Q01-Q03-qr-itinerary-next-stop.png` — Q01 shared-trip welcome/guest details, full itinerary, and upcoming station. Q01 visibly shows `tramviet.vn/t/HN-DN-A8K29` in the browser address bar; full name is requested, phone is optional, and existing account holders can sign in.
 2. `Q04-Q06-station-catalog-food.png` — Station detail with visible browser address bar, shopping catalog, and Cơm gà food detail. The catalog still includes food, drinks, regional specialties, and travel essentials.
 3. `Q07-Q08-cart-checkout.png` — Cart grouped by merchant/counter and combined checkout summary.
 4. `Q09-Q10-order-arrival.png` — Simplified order success and post-check-in tracking. Each counter retains its own readiness and pickup code; the C01 portion still waits for preparation after the vehicle arrives.

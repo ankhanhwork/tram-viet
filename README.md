@@ -1,41 +1,76 @@
-# Trạm Việt
+# Trạm Việt — Bạn đồng hành xuyên Việt
 
-**Bạn đồng hành xuyên Việt** — a frontend-first interactive demo connecting long-distance travelers, drivers, station shops, and roadside rest stations.
+Prototype tương tác phục vụ pitching, chạy bằng frontend và dữ liệu demo. Ba giao diện Travel / Merchant / Station cùng một luồng Guest QR công khai, chia sẻ trạng thái trong cùng trình duyệt.
 
-## Product
+## Chạy trên máy
 
-Trạm Việt helps people plan long-distance trips, discover suitable stops, share and join itineraries, and order food or services before arriving. A dedicated Merchant App helps each shop receive only its own orders, prepare them against vehicle ETA, and hand them over. The Station Portal gives station teams a station-wide view of incoming vehicles, passenger demand, shop readiness, pre-orders, sales, and trip-attributed revenue. Approved partner drivers can view their attributed orders and commission in the shared Travel App.
+Yêu cầu Node.js 22.12+ (khuyến nghị Node.js 24) và npm.
 
-The project is a pitch/demo experience. Core flows are intended to run on seeded frontend data without production backend, authentication, payment, GPS, camera, or AI integrations.
+```bash
+npm ci
+npm run dev
+```
 
-## Project documents
+Mở `http://localhost:5173`. Trang đầu cho phép chọn giao diện.
 
-- [Project specification](docs/project-spec.md): product requirements, screen inventory, demo scenario, business rules, and acceptance criteria.
-- [Agent guide](AGENTS.md): working conventions for implementation and future coding agents.
-- [Screen concepts](screen/): generated visual references for all three product interfaces.
+| Đường dẫn | Trải nghiệm |
+| --- | --- |
+| `/app` | Travel App mobile: tạo, tham gia, chia sẻ, theo dõi chuyến, đặt hàng, hồ sơ / earnings |
+| `/t/HN-DN-A8K29` | Guest QR: nhận diện khách, hành trình, trạm, catalog, giỏ nhiều quầy, checkout / nhận hàng |
+| `/merchant` | Merchant POS: login gắn một merchant, nhận / làm / sẵn sàng / bàn giao, phiếu in, thực đơn, hôm nay |
+| `/station` | Station Portal: xe sắp đến, đơn toàn trạm, readiness, doanh thu / merchant performance, đối tác |
+| `/demo-control` | Đổi người dùng, advance thời gian, delay ETA, fixture đơn, lỗi in và Reset Demo |
 
-## Demo story
+## Lịch trình và sổ tay mới
 
-The primary scenario follows an approved partner coach on a Hà Nội → Đà Nẵng trip. Travelers join the shared trip and pre-order at Trạm Việt Ninh Bình. The selected shop receives its order, uses the ETA-based preparation cue, and marks it ready and handed over. Station staff monitor vehicle and shop readiness; after pickup, eligible trip revenue contributes to the driver's 5% commission.
+Travel mở với tài khoản Anh chưa có chuyến. Nhập ảnh/PDF/văn bản hoặc tự lên lịch, thêm nhiều điểm, gợi ý nghỉ trạm 15 phút và so sánh giờ đến cuối. Có mẫu Hà Nội → Đà Nẵng 3 ngày, sổ tay địa điểm dùng chung cho khách tham gia, ảnh món/trạm và QR nhận hàng.
 
-## Product surfaces
+PDF có văn bản đọc tại trình duyệt; ảnh/PDF scan cần nhập mốc giờ hoặc chỉnh lịch gợi ý. Xem [chi tiết cập nhật](docs/journey-update.md) và [nguồn ảnh/prompt](docs/asset-prompts.md).
 
-### Travel App — mobile first
+## Luồng chính đã triển khai
 
-Home, trip planning and detail, live journey, share/join, station discovery, menu and checkout, orders, profile, and partner earnings.
+Chuyến Hà Nội → Đà Nẵng của Hoàng Long Express có 17 đơn seed trị giá 1.840.000đ. Khách đặt 2 Cơm gà + 1 Cà phê sữa tại A12 (180.000đ) → Merchant nhận và chuẩn bị theo ETA → tài xế check-in → Merchant đọc QR / bàn giao → earned commission tăng 9.000đ. Một đơn nhiều quầy tách thành phần đơn độc lập; in lại không tăng doanh thu.
 
-### Station Portal — desktop/tablet first
+Travel phục vụ người đi đường và mọi nhóm tài xế trong cùng app. Merchant trên desktop vẫn nằm trong khung mobile/POS. Station là giao diện quản lý desktop/tablet và không thay cửa hàng thao tác fulfillment.
 
-Overview, incoming vehicles and check-in, order management, sales analytics, driver partners and commission, and settings.
+## Kiểm tra
 
-### Merchant App — mobile/POS first
+```bash
+npm run typecheck
+npm run lint
+npm test
+npm run build
+```
 
-Each shop has its own login, bound to that shop's account. After login, staff go directly to their own order queue and cannot choose or switch to another shop. The app includes order detail and kitchen ticket, ETA-based preparation prompts, menu availability, and today's summary. A desktop view should remain inside a handheld POS/mobile preview rather than becoming a separate merchant dashboard.
+Kiểm tra luồng bằng Playwright:
 
-## Visual direction
+```bash
+npx playwright install chromium
+npm run test:e2e
+```
 
-Use the supplied references as the visual baseline: bright white backgrounds, deep navy typography, vivid blue primary actions, pale blue outlines, rounded cards, and a calm, trustworthy road-travel aesthetic. Keep Vietnamese as the primary interface language.
+Có thể dùng Edge đã cài trên Windows:
 
-## Repository status
+```powershell
+$env:PLAYWRIGHT_CHANNEL = 'msedge'
+npm run test:e2e
+```
 
-This workspace currently contains the project specification and initial project guidance. No application source code or package scripts are present yet. Follow the phased implementation plan in the spec when starting the interactive demo.
+Chạy `npm run format` để định dạng source. Build tạo thư mục `dist`; `npm run preview` xem bản production tại `http://localhost:4173`.
+
+## Deploy Vercel
+
+Import repo GitHub, Framework **Vite**, Root Directory **thư mục gốc**, Build **npm run build**, Output **dist**, Node **24.x**. Không cần biến môi trường hay secret. `vercel.json` đã có SPA rewrite cho deep links và refresh.
+
+Xem [hướng dẫn deploy](docs/deploy-vercel.md) và [kịch bản pitch / tài khoản demo](docs/demo-guide.md).
+
+## Cấu trúc và tài liệu
+
+- [Đặc tả sản phẩm](docs/project-spec.md): nguồn quy tắc, screen map và acceptance criteria.
+- [Kiến trúc frontend](docs/architecture.md): cấu trúc source, dữ liệu và giới hạn mô phỏng.
+- [Hướng dẫn tác nhân](AGENTS.md): quy ước triển khai.
+- [Ảnh tham khảo](screen/): màu sắc và tinh thần hình ảnh.
+
+Stack: React, Vite, TypeScript strict, React Router, Zustand, Tailwind CSS, Lucide và QR client-side. Các thành phần UI dùng HTML semantic; dialog hỗ trợ focus và Escape.
+
+State giữ ở localStorage và đồng bộ các tab cùng origin qua storage event. Auth, thanh toán, GPS/ETA, camera, máy in và nhánh app đã cài là mô phỏng. QR hành trình dùng URL thật của deployment; QR nhận hàng có token riêng và đọc ảnh thật bằng jsQR. Prototype chưa có app native; thiết bị khác và domain khác không đồng bộ đơn / check-in khi chưa có backend chung. Danh mục đặt trước hiện tập trung ở Ninh Bình; ảnh sản phẩm/trạm và bản đồ được tạo riêng, tối ưu WebP.

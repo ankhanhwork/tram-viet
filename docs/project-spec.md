@@ -155,7 +155,7 @@ Bản demo gồm **3 giao diện vận hành/Travel trong cùng một frontend**
 | Giao diện | Người dùng | Thiết bị ưu tiên | Trách nhiệm |
 |---|---|---|---|
 | Trạm Việt App / Travel App | Người có tài khoản: người đi đường, người tự lái, mọi loại tài xế | Mobile | Tạo/theo dõi/chia sẻ trip; chủ chuyến check-in tại trạm; Partner Driver có thêm commission |
-| Guest QR Web | Hành khách quét QR trên xe | Mobile browser | Xem hành trình, xem trạm sắp tới, đặt trước và theo dõi/nhận hàng không cần tải app hoặc đăng nhập |
+| Guest QR Web | Hành khách quét QR trên xe | Mobile browser | Khi chưa có app: xem chuyến được chia sẻ, cung cấp họ tên và tùy chọn số điện thoại, sau đó đặt trước và theo dõi/nhận hàng |
 | Trạm Việt Merchant | Cửa hàng/quầy thuê trong trạm | Mobile / POS cầm tay | Nhận đơn, chuẩn bị, bàn giao, in phiếu mô phỏng |
 | Trạm Việt Station / Station Portal | Chủ/quản lý trạm, quản lý chuỗi | Desktop/tablet landscape | Incoming vehicles, giám sát đơn, hiệu suất cửa hàng, doanh thu và commission |
 
@@ -228,7 +228,7 @@ Demo login dùng tài khoản/mật khẩu giả lập riêng cho từng cửa h
 
 ## 4.4. Guest QR Web
 
-QR trên xe mở URL công khai dạng `/t/{publicTripCode}`, ví dụ `tramviet.vn/t/HN-DN-A8K29`. Trình duyệt hiển thị thông tin chuyến, timeline các điểm dừng, ETA và trạm sắp tới trước khi khách vào danh mục mua trước. Khách có thể chọn sản phẩm từ nhiều quầy trong một giỏ, thanh toán mô phỏng một lần, nhận mã theo từng quầy và theo dõi trạng thái từng phần đơn. Không có màn đăng nhập, nút tải app bắt buộc, bottom navigation theo tài khoản hay bước “Tham gia chuyến” chặn checkout.
+QR trên xe mở URL công khai dạng `/t/{publicTripCode}`, ví dụ `tramviet.vn/t/HN-DN-A8K29`. Khi thiết bị đã cài Travel App, URL/QR mở chuyến tương ứng trực tiếp trong app (deep link); không tạo screen riêng cho bước điều hướng này. Nếu chưa có app, Guest QR Web mở trang đầu tiên nhận diện tên chuyến được chia sẻ, có trường họ tên và số điện thoại tùy chọn. Người đã có tài khoản có thể chọn đăng nhập tại đây; sau đăng nhập, họ trở về luồng Travel App thông thường với chuyến được chia sẻ. Khách tiếp tục ở web có thể xem timeline, ETA và trạm sắp tới, chọn sản phẩm từ nhiều quầy trong một giỏ, thanh toán mô phỏng một lần, nhận mã theo từng quầy và theo dõi trạng thái từng phần đơn. Không yêu cầu cài app hoặc tham gia chuyến để checkout.
 
 Khách chỉ được xem dữ liệu công khai của chuyến và đơn phát sinh trong phiên/link của mình. Guest QR Web không cho sửa hành trình, check-in, xem danh sách hành khách hay xem commission. MVP frontend-only chứng minh flow trong cùng phiên trình duyệt; đồng bộ đơn và check-in giữa các thiết bị độc lập cần backend ở giai đoạn pilot.
 
@@ -939,7 +939,7 @@ QR chứa URL dạng:
 
 `/t/HN-DN-A8K29`
 
-Đây là URL HTTPS public của Guest QR Web. Khách mở bằng trình duyệt, không phải tải app hoặc đăng nhập. Link hiển thị hành trình trước; thao tác tham gia chuyến bằng tài khoản (nếu có) là tùy chọn, không chặn đặt hàng.
+Đây là URL HTTPS public của chuyến. Nếu đã cài Travel App, mở chuyến tương ứng trong app; nếu chưa có, mở Guest QR Web. Trang đầu Guest QR Web hiển thị tên chuyến được chia sẻ, họ tên và số điện thoại tùy chọn, cùng lối đăng nhập cho người đã có tài khoản. Đăng nhập đưa người dùng về luồng Travel App thông thường. Khách tiếp tục dưới dạng guest vẫn xem hành trình và đặt hàng mà không cần cài app hoặc tham gia chuyến.
 
 ---
 
@@ -955,11 +955,11 @@ Station Portal chỉ quan sát và đối soát check-in. Camera nhận diện b
 
 ## Q01–Q10 – Guest QR Web screen map
 
-QR public đi vào **hành trình trước, đặt hàng sau**. Khách không cần cài Travel App, đăng nhập hoặc bấm Join Trip. Tên/mã phiên khách có thể lấy tối giản ở checkout để tra đơn trên cùng thiết bị; link đơn/mã nhận hàng cho phép quay lại.
+QR public được định tuyến theo thiết bị: nếu có Travel App thì mở chuyến trong app; nếu chưa có thì vào Guest QR Web. Q01 là trang chào theo chuyến, hiển thị tên chuyến được chia sẻ, trường họ tên, số điện thoại tùy chọn và lời nhắc/lối đăng nhập cho người đã có tài khoản. Đăng nhập tiếp tục trong luồng Travel App thông thường. Guest có thể xem hành trình trước khi đặt hàng mà không cần đăng nhập hoặc bấm Join Trip. Thông tin nhận diện guest có thể dùng lại ở checkout; link đơn/mã nhận hàng cho phép quay lại.
 
 | Màn | Nội dung và hành động chính |
 |---|---|
-| Q01 QR landing | Tên miền HTTPS rõ ràng, nhận diện chuyến, hành trình và nút Xem hành trình. |
+| Q01 QR landing | Tên miền HTTPS rõ ràng, tên chuyến được chia sẻ, trường họ tên, số điện thoại tùy chọn, lối đăng nhập cho tài khoản hiện có và CTA tiếp tục xem hành trình. |
 | Q02 Tổng quan hành trình | Tuyến, xe, tài xế, trạm dừng sắp tới, ETA; CTA Xem trạm. |
 | Q03 Chi tiết chặng/trạm | Thời gian đến dự kiến, vị trí trạm, tiện ích và CTA Khám phá sản phẩm. |
 | Q04 Trạm dừng | Thông tin trạm, các quầy và khu **Siêu thị Trạm Việt**; chuyển vào danh mục. |
@@ -1480,7 +1480,7 @@ Mọi owner đều có thể share trip.
 
 ## BR03 – Guest QR access và optional Join
 
-Mọi khách có link/QR public đều xem hành trình và đặt hàng bằng browser, không đăng nhập hoặc Join. User có tài khoản có thể chọn lưu/Join trip vào My Trips, nhưng đây là nhánh tùy chọn.
+QR/link public mở trực tiếp chuyến trong Travel App nếu thiết bị đã cài app. Nếu chưa cài, mở Guest QR Web và Q01 thu họ tên cùng số điện thoại tùy chọn trước khi tiếp tục. Người có tài khoản có thể đăng nhập từ Q01; sau đăng nhập trở về luồng Travel App thông thường với chuyến được chia sẻ. Guest tiếp tục bằng browser vẫn xem hành trình và đặt hàng không cần Join. Lưu/Join trip vào My Trips là nhánh tùy chọn.
 
 ## BR04 – Universal Ordering
 
@@ -2110,8 +2110,8 @@ Playwright phải test được flow này:
 ## Flow A – Passenger experience
 
 1. Tài xế chia sẻ QR/link HTTPS của chuyến Hà Nội → Đà Nẵng.
-2. Khách quét QR, mở Guest QR Web trên trình duyệt, không cài app/đăng nhập.
-3. Xem tổng quan hành trình và trạm sắp tới trước khi vào mua hàng.
+2. Khách quét QR: nếu có Travel App thì chuyến mở trong app; nếu chưa có thì Q01 trên browser hiển thị tên chuyến và yêu cầu họ tên, số điện thoại là tùy chọn. Người có tài khoản có thể đăng nhập để vào luồng Travel App thông thường.
+3. Guest tiếp tục trên web, xem tổng quan hành trình và trạm sắp tới trước khi vào mua hàng.
 4. Mở trạm và catalog gồm món ăn, đồ uống, đặc sản và hàng tiện ích.
 5. Mở Q06 chi tiết Cơm gà tại Cơm Việt · A12.
 6. Xem ETA và quầy nhận.
@@ -2190,7 +2190,7 @@ Playwright phải test được flow này:
 
 ## Guest QR Web
 
-- QR mở URL HTTPS public có tên miền rõ, vào hành trình trước catalog, không cần tải app/đăng nhập/Join.
+- QR mở chuyến trong app nếu đã cài; nếu chưa, mở URL HTTPS Guest QR Web có tên miền rõ. Q01 nhận họ tên, số điện thoại tùy chọn và hỗ trợ đăng nhập tài khoản; guest vẫn vào hành trình và đặt hàng không cần cài app, đăng nhập hoặc Join.
 - Q06 chi tiết Cơm gà của A12; các nhóm hàng khác vẫn mua được trong cùng giỏ.
 - Checkout tạo một Order khách, chia MerchantOrder theo quầy; khách tra cứu trạng thái/mã nhận hàng bằng link hoặc mã đơn.
 
@@ -2447,7 +2447,7 @@ Bản demo đầu tiên được xem là đủ tốt khi:
 
 - Có landing/login entry đẹp.
 - Có Travel App mobile hoàn chỉnh cho tài xế, gồm QR share và check-in.
-- Có Guest QR Web mở bằng HTTPS, xem hành trình trước khi đặt hàng, không yêu cầu cài app/đăng nhập.
+- QR mở chuyến trong Travel App nếu đã cài; nếu chưa có app, Guest QR Web mở bằng HTTPS với Q01 thu họ tên, số điện thoại tùy chọn và lối đăng nhập tài khoản; guest vẫn xem hành trình và đặt hàng không cần cài app/đăng nhập.
 - Có Station Portal desktop hoàn chỉnh cho happy path.
 - Có Merchant terminal mobile/POS M01–M05 hoàn chỉnh cho happy path.
 - Có một demo trip Hà Nội → Đà Nẵng.
