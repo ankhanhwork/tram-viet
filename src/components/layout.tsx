@@ -10,22 +10,22 @@ import {
   Settings,
   Store,
   UserRound,
-  Wallet,
 } from 'lucide-react';
 import { useDemoStore } from '../store/useDemoStore';
 import { Brand, Toast } from './ui';
+import { DemoGuide } from '../pages/demo/DemoGuide';
+import { GuestMobileGuide } from '../pages/guest/GuestMobileGuide';
 import { clock, dateLabel } from '../lib/rules';
 export function RootLayout() {
   return (
     <>
       <Outlet />
+      <DemoGuide />
       <Toast />
     </>
   );
 }
 export function MobileLayout({ guest = false }: { guest?: boolean }) {
-  const s = useDemoStore();
-  const user = s.users.find((u) => u.id === s.currentUserId)!;
   return (
     <div className="mobile-stage">
       <div className="preview-label">
@@ -43,6 +43,7 @@ export function MobileLayout({ guest = false }: { guest?: boolean }) {
         <main className="mobile-content">
           <Outlet />
         </main>
+        {guest && <GuestMobileGuide />}
         {!guest && (
           <nav className="bottom-nav" aria-label="Travel App">
             <NavLink to="/app" end>
@@ -57,12 +58,6 @@ export function MobileLayout({ guest = false }: { guest?: boolean }) {
               <ClipboardList size={20} />
               Đơn hàng
             </NavLink>
-            {user.partnerStatus === 'approved' && (
-              <NavLink to="/app/earnings">
-                <Wallet size={20} />
-                Thu nhập
-              </NavLink>
-            )}
             <NavLink to="/app/profile">
               <UserRound size={20} />
               Hồ sơ
@@ -119,7 +114,7 @@ export function MerchantLayout() {
           </NavLink>
           <NavLink to="/merchant/today">
             <ChartNoAxesCombined size={21} />
-            Hôm nay
+            Hiệu suất
           </NavLink>
         </nav>
       </div>
@@ -129,8 +124,6 @@ export function MerchantLayout() {
 const stationLinks = [
   ['', 'Tổng quan', LayoutDashboard],
   ['vehicles', 'Xe sắp đến', Bus],
-  ['orders', 'Đơn đặt trước', ClipboardList],
-  ['sales', 'Doanh thu', ChartNoAxesCombined],
   ['partners', 'Đối tác', UserRound],
   ['settings', 'Cài đặt', Settings],
 ] as const;

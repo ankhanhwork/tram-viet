@@ -8,6 +8,8 @@ export interface User {
   email: string;
   role: 'traveler' | 'car' | 'truck' | 'coach';
   partnerStatus: 'none' | 'pending' | 'approved';
+  /** Managed privately by the station; never rendered in the Travel App. */
+  commissionRate?: number;
   company?: string;
   plate?: string;
 }
@@ -150,4 +152,7 @@ export interface DemoData {
   autoPrint: boolean;
   sound: boolean;
   appInstalled: boolean;
+  demoGuideEnabled: boolean;
+  demoGuideStep: number;
+  guestLanguage: 'vi' | 'en' | 'zh';
 }

@@ -115,7 +115,7 @@ export function StationDetail() {
       </div>
       <div className="featured-food">
         {s.products
-          .filter((p) => p.stationId === station.id && p.available && productImages[p.id])
+          .filter((p) => p.stationId === station.id && p.available)
           .slice(0, 4)
           .map((p) => (
             <Link key={p.id} to={`${base}/station/${station.id}/products/${p.id}`}>
@@ -438,7 +438,7 @@ export function Cart({ checkout = false }: { checkout?: boolean }) {
   const [name, setName] = useState(
     guest ? (s.guest?.name ?? '') : (s.users.find((u) => u.id === s.currentUserId)?.name ?? ''),
   );
-  const [payment, setPayment] = useState('MoMo');
+  const [payment, setPayment] = useState('QR ngân hàng');
   const [loading, setLoading] = useState(false);
   if (!trip || !station) return <Missing />;
   if (guest && !s.guest) return <Navigate to={base} replace />;
@@ -550,7 +550,7 @@ export function Cart({ checkout = false }: { checkout?: boolean }) {
                 <input required value={name} onChange={(e) => setName(e.target.value)} />
               </label>
               <h3>Thanh toán</h3>
-              {['MoMo', 'VNPay', 'Thẻ ngân hàng'].map((p) => (
+              {['QR ngân hàng', 'ZaloPay', 'Visa / Mastercard', 'Apple Pay'].map((p) => (
                 <label className="selection-card" key={p}>
                   <input
                     type="radio"

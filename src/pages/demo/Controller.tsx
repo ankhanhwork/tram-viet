@@ -51,6 +51,15 @@ export default function Controller() {
         description="Công cụ trình diễn. Các thay đổi cập nhật cùng store với bốn giao diện."
       />
       <div className="controller-grid">
+        <Card className="guide-settings-card">
+          <h2>Hướng dẫn trình diễn</h2>
+          <p>Bật để dẫn người demo qua Tài xế → Khách → Merchant → Quản lý trạm.</p>
+          <label className="switch-row">
+            <input type="checkbox" checked={s.demoGuideEnabled} onChange={(e) => s.setDemoGuide(e.target.checked)} />
+            <span>{s.demoGuideEnabled ? 'Đang bật hướng dẫn' : 'Hướng dẫn đang tắt'}</span>
+          </label>
+          {s.demoGuideEnabled && <button className="button secondary" onClick={() => s.setDemoGuideStep(0)}>Bắt đầu lại từ tài xế</button>}
+        </Card>
         <Card>
           <h2>
             <Clock size={22} />
@@ -128,7 +137,7 @@ export default function Controller() {
               className="button secondary"
               onClick={() => s.setTripStatus(MAIN_TRIP, 'ARRIVED')}
             >
-              Đã đến Đà Nẵng
+              Đã đến Quảng Bình
             </button>
           </div>
           <p className="fine-print">
@@ -249,7 +258,7 @@ export default function Controller() {
         </Card>
         <Card className="reset-card">
           <h2>Khôi phục demo</h2>
-          <p>Đưa về 08:33, 17 đơn chính, giá trị 1.840.000đ; xóa giỏ và phiên đăng nhập demo.</p>
+          <p>Đưa về tuyến Hà Nội → Quảng Bình, 08:33 và dữ liệu đơn mẫu; xóa giỏ và phiên đăng nhập demo.</p>
           <button
             className="button danger"
             onClick={() => {

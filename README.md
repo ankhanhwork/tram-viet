@@ -1,6 +1,6 @@
 # Trạm Việt — Bạn đồng hành xuyên Việt
 
-Prototype tương tác phục vụ pitching, chạy bằng frontend và dữ liệu demo. Ba giao diện Travel / Merchant / Station cùng một luồng Guest QR công khai, chia sẻ trạng thái trong cùng trình duyệt.
+Prototype tương tác phục vụ pitching, chạy bằng frontend và dữ liệu demo. Ba giao diện Travel / Merchant / Station cùng một luồng Guest QR công khai, chia sẻ trạng thái trong cùng trình duyệt. Xem [kịch bản Hà Nội → Quảng Bình](docs/demo-guide-hanoi-quang-binh.md).
 
 ## Chạy trên máy
 

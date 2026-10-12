@@ -832,14 +832,22 @@ export function StationSales() {
 }
 export function StationPartners() {
   const s = useDemoStore();
-  const partners = s.users.filter((u) => ['approved', 'pending'].includes(u.partnerStatus));
+  const [rankBy, setRankBy] = useState<'revenue' | 'passengers'>('revenue');
+  const partners = s.users
+    .filter((u) => ['approved', 'pending'].includes(u.partnerStatus))
+    .sort((a, b) =>
+      rankBy === 'revenue'
+        ? commission(s, b.id).total - commission(s, a.id).total
+        : s.trips.filter((trip) => trip.ownerId === b.id).reduce((total, trip) => total + trip.passengerCount, 0) - s.trips.filter((trip) => trip.ownerId === a.id).reduce((total, trip) => total + trip.passengerCount, 0),
+    );
   const [selected, setSelected] = useState<string | null>(null);
   const u = s.users.find((u) => u.id === selected);
   return (
     <>
       <Title
-        title="Đối tác & hoa hồng"
-        description="Hoa hồng chỉ phát sinh từ phần đơn đủ điều kiện. Khoản đã kiếm được vẫn chờ đối soát."
+        title="Đối tác"
+        description="Xếp hạng tài xế theo giá trị khách mang đến hoặc quy mô hành khách. Thỏa thuận % được quản lý riêng tại trạm."
+        action={<label>Xếp hạng<select value={rankBy} onChange={(e) => setRankBy(e.target.value as typeof rankBy)}><option value="revenue">Theo doanh thu khách</option><option value="passengers">Theo lượng khách</option></select></label>}
       />
       <Card>
         <div className="table-scroll">
@@ -849,9 +857,9 @@ export function StationPartners() {
                 <th>Tài xế / nhà xe</th>
                 <th>Trạng thái</th>
                 <th>Chuyến</th>
-                <th>Đơn khách</th>
-                <th>Hoa hồng dự kiến</th>
-                <th>Hoa hồng đã kiếm</th>
+                <th>Khách mang đến</th>
+                <th>Giá trị khách đã đặt</th>
+                <th>Thỏa thuận %</th>
                 <th />
               </tr>
             </thead>
@@ -870,10 +878,12 @@ export function StationPartners() {
                       </Pill>
                     </td>
                     <td>{s.trips.filter((t) => t.ownerId === p.id).length}</td>
-                    <td>{c.customers}</td>
-                    <td>{money(c.expected)}</td>
+                    <td>{s.trips.filter((t) => t.ownerId === p.id).reduce((total, trip) => total + trip.passengerCount, 0)}</td>
                     <td>
-                      <strong>{money(c.earned)}</strong>
+                      <strong>{money(c.total)}</strong>
+                    </td>
+                    <td>
+                      <label className="rate-input"><input aria-label={`Tỷ lệ thỏa thuận của ${p.name}`} type="number" min="0" max="100" value={p.commissionRate ?? 5} onChange={(e) => s.setCommissionRate(p.id, Number(e.target.value))} />%</label>
                     </td>
                     <td>
                       <button className="link-button" onClick={() => setSelected(p.id)}>
@@ -898,7 +908,7 @@ export function StationPartners() {
               <strong>{money(commission(s, u.id).completed)}</strong>
             </div>
             <div className="row">
-              <span>Hoa hồng 5%</span>
+              <span>Chi phí thỏa thuận {u.commissionRate ?? 5}%</span>
               <strong>{money(commission(s, u.id).earned)}</strong>
             </div>
             <p>Đối soát: đang chờ</p>

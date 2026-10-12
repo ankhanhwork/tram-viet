@@ -42,6 +42,10 @@ interface Actions {
   toggleAccepting: () => void;
   printTicket: (id: string) => Promise<void>;
   setOption: (key: 'autoPrint' | 'printError' | 'sound' | 'appInstalled', value: boolean) => void;
+  setDemoGuide: (enabled: boolean) => void;
+  setDemoGuideStep: (step: number) => void;
+  setCommissionRate: (userId: string, rate: number) => void;
+  setGuestLanguage: (language: DemoData['guestLanguage']) => void;
   resetDemo: () => void;
   openMerchantDemo: (id: string) => void;
 }
@@ -344,11 +348,54 @@ export const useDemoStore = create<DemoStore>()(
         await finishPrint(ticketId);
       },
       setOption: (key, value) => set({ [key]: value }),
+      setDemoGuide: (enabled) => set({ demoGuideEnabled: enabled, demoGuideStep: enabled ? 0 : 0 }),
+      setDemoGuideStep: (step) => set({ demoGuideStep: Math.max(0, step) }),
+      setCommissionRate: (userId, rate) =>
+        set((s) => ({
+          users: s.users.map((user) =>
+            user.id === userId ? { ...user, commissionRate: Math.max(0, Math.min(100, rate)) } : user,
+          ),
+        })),
+      setGuestLanguage: (guestLanguage) => set({ guestLanguage }),
       resetDemo: () => set(createSeed()),
     }),
     {
-      name: 'tram-viet-demo-v1',
-      version: 2,
+      name: 'tram-viet-demo-v2',
+      version: 3,
+      merge: (persistedState, currentState) => {
+        const persisted = (persistedState ?? {}) as Partial<DemoStore>;
+        const includeSeedItems = <T extends { id: string }>(seeded: T[], saved: T[] | undefined) => {
+          const items = new Map(seeded.map((item) => [item.id, item]));
+          for (const item of saved ?? []) items.set(item.id, item);
+          return [...items.values()];
+        };
+        const seededStops = new Map(
+          currentState.trips
+            .find((item) => item.id === MAIN_TRIP)
+            ?.stops.map((stop) => [stop.id, stop] as const) ?? [],
+        );
+        const trips = (persisted.trips ?? currentState.trips).map((trip) =>
+          trip.id !== MAIN_TRIP
+            ? trip
+            : {
+                ...trip,
+                stops: trip.stops.map((stop) => {
+                  const seededStop = seededStops.get(stop.id);
+                  return seededStop?.stationId
+                    ? { ...stop, name: seededStop.name, stationId: seededStop.stationId }
+                    : stop;
+                }),
+              },
+        );
+        return {
+          ...currentState,
+          ...persisted,
+          stations: includeSeedItems(currentState.stations, persisted.stations),
+          merchants: includeSeedItems(currentState.merchants, persisted.merchants),
+          products: includeSeedItems(currentState.products, persisted.products),
+          trips,
+        };
+      },
       migrate: (old) => {
         const data = old as DemoData;
         return {
@@ -404,7 +451,7 @@ function resumePrints() {
 resumePrints();
 if (typeof window !== 'undefined')
   window.addEventListener('storage', (event) => {
-    if (event.key === 'tram-viet-demo-v1')
+    if (event.key === 'tram-viet-demo-v2')
       void Promise.resolve(useDemoStore.persist.rehydrate()).then(resumePrints);
   });
 export const mainTrip = () => useDemoStore.getState().trips.find((t) => t.id === MAIN_TRIP)!;

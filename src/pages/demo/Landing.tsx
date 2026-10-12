@@ -38,7 +38,7 @@ export default function Landing() {
                 <Bus />
               </span>
               <div>
-                <strong>Hà Nội → Đà Nẵng</strong>
+                <strong>Hà Nội → Quảng Bình</strong>
                 <p>Hoàng Long Express · 42 hành khách</p>
                 <Pill tone="green">Điểm dừng tiếp theo · Ninh Bình</Pill>
               </div>
@@ -100,7 +100,7 @@ export default function Landing() {
             <h2>Xem hành trình, đặt món trước.</h2>
             <p>Không cần tài khoản. Không cần tải app.</p>
           </div>
-          <Link className="button secondary" to="/t/HN-DN-A8K29">
+          <Link className="button secondary" to="/t/HN-QB-A8K29">
             Xem hành trình trên xe <ArrowRight size={18} />
           </Link>
         </Card>

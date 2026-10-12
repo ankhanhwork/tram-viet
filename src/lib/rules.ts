@@ -63,7 +63,14 @@ export function commission(
     );
   });
   const m = metrics(eligible);
-  return { ...m, earned: Math.round(m.completed * 0.05), expected: Math.round(m.pending * 0.05) };
+  const owner = ownerId ? data.users.find((user) => user.id === ownerId) : undefined;
+  const rate = owner?.commissionRate ?? 5;
+  return {
+    ...m,
+    rate,
+    earned: Math.round((m.completed * rate) / 100),
+    expected: Math.round((m.pending * rate) / 100),
+  };
 }
 export function orderLabel(parts: MerchantOrder[]) {
   if (!parts.length) return 'Không có phần đơn';

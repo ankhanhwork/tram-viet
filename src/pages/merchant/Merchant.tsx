@@ -37,9 +37,7 @@ const actions: Partial<Record<OrderStatus, string>> = {
 const tabs: [string, string][] = [
   ['NEW', 'Mới'],
   ['ACCEPTED', 'Đã nhận'],
-  ['PREPARING', 'Đang làm'],
   ['READY', 'Sẵn sàng'],
-  ['HISTORY', 'Lịch sử'],
 ];
 export function MerchantLogin() {
   const s = useDemoStore();
@@ -138,12 +136,12 @@ export function MerchantOrders() {
     if (newCount > previous.current && s.sound) beep();
     previous.current = newCount;
   }, [newCount, s.sound]);
-  const list = parts.filter((p) =>
-    tab === 'HISTORY' ? ['PICKED_UP', 'REJECTED'].includes(p.status) : p.status === tab,
-  );
+  const list = parts
+    .filter((p) => p.status === tab || (tab === 'ACCEPTED' && p.status === 'PREPARING'))
+    .sort((a, b) => Date.parse(s.orders.find((o) => o.id === b.orderId)?.createdAt ?? '') - Date.parse(s.orders.find((o) => o.id === a.orderId)?.createdAt ?? ''));
   return (
     <>
-      <Title title="Đơn hàng tại quầy" description="Chuẩn bị đúng lúc, bàn giao đúng khách." />
+      <Title title="Đơn hàng tại quầy" description="Chuẩn bị đúng lúc, bàn giao đúng khách." action={<Link className="text-link" to="/merchant/history">Lịch sử →</Link>} />
       <div className="pos-options">
         <button
           className={s.sound ? 'active' : ''}
@@ -178,11 +176,7 @@ export function MerchantOrders() {
           <button className={tab === id ? 'active' : ''} onClick={() => setTab(id)} key={id}>
             {label}
             <span>
-              {
-                parts.filter((p) =>
-                  id === 'HISTORY' ? ['PICKED_UP', 'REJECTED'].includes(p.status) : p.status === id,
-                ).length
-              }
+              {parts.filter((p) => p.status === id || (id === 'ACCEPTED' && p.status === 'PREPARING')).length}
             </span>
           </button>
         ))}
@@ -196,6 +190,19 @@ export function MerchantOrders() {
           description="Đơn mới sẽ xuất hiện tại đây sau khi khách thanh toán."
         />
       )}
+    </>
+  );
+}
+export function MerchantHistory() {
+  const s = useDemoStore();
+  const parts = s.merchantOrders
+    .filter((p) => p.merchantId === s.merchantSessionId && ['PICKED_UP', 'REJECTED'].includes(p.status))
+    .sort((a, b) => Date.parse(b.history.at(-1)?.at ?? '') - Date.parse(a.history.at(-1)?.at ?? ''));
+  return (
+    <>
+      <Back title="Lịch sử đơn hàng" to="/merchant/orders" />
+      {parts.map((part) => <MerchantOrderCard key={part.id} part={part} />)}
+      {!parts.length && <Empty title="Chưa có đơn hoàn tất" description="Các đơn đã bàn giao hoặc từ chối sẽ lưu tại đây." />}
     </>
   );
 }

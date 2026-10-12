@@ -1,9 +1,19 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { Plus, Trash2, Upload, FileText, ArrowRight } from 'lucide-react';
-import { Back, Card, Timeline, RouteArt, notify } from '../../components/ui';
+import {
+  ArrowRight,
+  Bus,
+  Check,
+  Clock,
+  MapPin,
+  Plus,
+  Trash2,
+  Upload,
+  FileText,
+} from 'lucide-react';
+import { Back, Card, Modal, Pill, Timeline, RouteArt, notify } from '../../components/ui';
 import { useDemoStore } from '../../store/useDemoStore';
-import { clock, dateLabel } from '../../lib/rules';
+import { clock, dateLabel, money } from '../../lib/rules';
 import {
   exampleText,
   legDistance,
@@ -28,9 +38,18 @@ export function TripPlanner() {
     [search] = useSearchParams(),
     navigate = useNavigate();
   const existing = s.trips.find((t) => t.id === tripId && t.ownerId === user.id);
+  const requestedDate = search.get('date');
+  const requestedDepartureTime = requestedDate
+    ? Date.parse(`${requestedDate}T07:00:00+07:00`)
+    : Number.NaN;
+  const requestedDeparture = Number.isFinite(requestedDepartureTime)
+    ? new Date(requestedDepartureTime).toISOString()
+    : s.demoTime;
   const [step, setStep] = useState(1),
     [mode, setMode] = useState(search.get('mode') === 'import' ? 'import' : 'manual');
-  const [departure, setDeparture] = useState(localTime(existing?.stops[0].arrivalAt ?? s.demoTime));
+  const [departure, setDeparture] = useState(
+    localTime(existing?.stops[0].arrivalAt ?? requestedDeparture),
+  );
   const [desired, setDesired] = useState(
     localTime(
       existing?.desiredArrivalAt ??
@@ -42,8 +61,20 @@ export function TripPlanner() {
     existing
       ? tripWaypoints(existing)
       : [
-          { id: crypto.randomUUID(), name: 'Hà Nội', minutes: 0, km: 0, note: '' },
-          { id: crypto.randomUUID(), name: 'Đà Nẵng', minutes: 0, km: 785, note: '' },
+          {
+            id: crypto.randomUUID(),
+            name: search.get('from')?.trim() || 'Hà Nội',
+            minutes: 0,
+            km: 0,
+            note: '',
+          },
+          {
+            id: crypto.randomUUID(),
+            name: search.get('to')?.trim() || 'Đồng Hới · Quảng Bình',
+            minutes: 0,
+            km: 500,
+            note: '',
+          },
         ],
   );
   const [rests, setRests] = useState<Record<string, number>>(
@@ -57,6 +88,10 @@ export function TripPlanner() {
     [filePreview, setFilePreview] = useState('');
   const [plate, setPlate] = useState(existing?.plate ?? user.plate ?? ''),
     [count, setCount] = useState(existing?.passengerCount ?? 1);
+  const [company, setCompany] = useState(existing?.company ?? user.company ?? '');
+  const [addPlate, setAddPlate] = useState(false);
+  const [addCompany, setAddCompany] = useState(false);
+  const [detailStationId, setDetailStationId] = useState<string | null>(null);
   const [title, setTitle] = useState(existing?.title ?? '');
   const recommendations = s.stations.filter((st) => {
     const km = placeInfo(st.name)?.km;
@@ -81,6 +116,11 @@ export function TripPlanner() {
       km: placeInfo(st.name)?.km ?? 0,
       minutes: rests[st.id],
     }));
+  const balancedStations = recommendations
+    .slice()
+    .sort((a, b) => (placeInfo(a.name)?.km ?? 0) - (placeInfo(b.name)?.km ?? 0))
+    .filter((_, index, all) => all.length < 3 || index === 0 || index === all.length - 1)
+    .slice(0, 2);
   const stops = schedule(isoTime(departure), points, selected).map((p) => {
     const original = existing?.stops.find((old) =>
       p.stationId ? old.stationId === p.stationId : old.id === p.id,
@@ -88,6 +128,72 @@ export function TripPlanner() {
     return original ? { ...p, id: original.id, checkedInAt: original.checkedInAt } : p;
   });
   const baseline = schedule(isoTime(departure), points, []).at(-1)!.arrivalAt;
+  const totalMinutes = Math.max(
+    0,
+    Math.round((Date.parse(stops.at(-1)!.arrivalAt) - Date.parse(stops[0].arrivalAt)) / 60000),
+  );
+  const drivingMinutes = Math.max(
+    0,
+    Math.round((Date.parse(baseline) - Date.parse(stops[0].arrivalAt)) / 60000),
+  );
+  const restMinutes = selected.reduce((total, stop) => total + stop.minutes, 0);
+  const arrivalBufferMinutes = Math.round(
+    (Date.parse(isoTime(desired)) - Date.parse(stops.at(-1)!.arrivalAt)) / 60000,
+  );
+  const startKm = placeInfo(points[0].name)?.km ?? 0;
+  const routeTimeline = [
+    ...points.map((point, index) => ({
+      kind: 'waypoint' as const,
+      id: point.id,
+      name: point.name,
+      note: point.note,
+      routeKm: placeInfo(point.name)?.km ?? points.slice(1, index + 1).reduce((n, p) => n + p.km, 0),
+      stop: stops.find((stop) => stop.id === point.id),
+      pointIndex: index,
+    })),
+    ...recommendations.map((station) => ({
+      kind: 'station' as const,
+      id: station.id,
+      name: station.name,
+      routeKm: placeInfo(station.name)?.km ?? 0,
+      station,
+      stop: stops.find((stop) => stop.stationId === station.id),
+      pointIndex: -1,
+    })),
+  ].sort((a, b) => a.routeKm - b.routeKm);
+  const ownTrips = s.trips.filter((trip) => trip.ownerId === user.id);
+  const vehicleOptions = [
+    ...new Set(
+      [user.plate, ...ownTrips.map((trip) => trip.plate), plate].filter(
+        (value): value is string => Boolean(value),
+      ),
+    ),
+  ];
+  const companyOptions = [
+    ...new Set(
+      [user.company, ...ownTrips.map((trip) => trip.company), company].filter(
+        (value): value is string => Boolean(value),
+      ),
+    ),
+  ];
+  const detailStation = s.stations.find((station) => station.id === detailStationId);
+  const detailProducts = detailStation
+    ? s.products
+        .filter((product) => product.stationId === detailStation.id && product.available)
+        .sort((a, b) => {
+          const rank = { FOOD: 0, SPECIALTY: 1, DRINK: 2, CONVENIENCE: 3 };
+          return rank[a.category] - rank[b.category];
+        })
+        .slice(0, 4)
+    : [];
+  const productPhotos: Record<string, string> = {
+    'com-ga': 'chicken-rice',
+    'pho-bo': 'beef-pho',
+    'com-cafe': 'coffee',
+    'cafe-sua': 'coffee',
+    'banh-mi': 'banh-mi',
+    'com-chay': 'rice-crackers',
+  };
   const preview: Trip = {
     id: existing?.id ?? 'preview',
     title: title || `${points[0].name} → ${points.at(-1)!.name}`,
@@ -98,7 +204,7 @@ export function TripPlanner() {
     publicTripCode: existing?.publicTripCode ?? '',
     status: existing?.status ?? 'READY',
     plate,
-    company: user.role === 'coach' ? user.company : undefined,
+    company: company.trim() || undefined,
     passengerCount: count,
     partnerTrip: user.partnerStatus === 'approved',
     commissionEligible: user.partnerStatus === 'approved',
@@ -157,6 +263,37 @@ export function TripPlanner() {
     setMode('manual');
     setRests({});
     notify('Đã tạo lịch trình. Bạn có thể chỉnh từng điểm trước khi tiếp tục.');
+  }
+  function applyBalancedStops() {
+    if (!balancedStations.length) return;
+    setRests(
+      Object.fromEntries(
+        balancedStations.map((station, index) => [station.id, index === 0 ? 15 : 25]),
+      ),
+    );
+    notify(`Đã thêm ${balancedStations.length} điểm nghỉ phù hợp vào lịch trình.`);
+  }
+  function enterRestPlanning() {
+    if (!existing && selected.length === 0 && balancedStations.length) applyBalancedStops();
+    setStep(2);
+  }
+  function leaveEarlierToProtectArrival() {
+    if (arrivalBufferMinutes >= 0) return;
+    const nextDeparture = new Date(
+      Date.parse(isoTime(departure)) + arrivalBufferMinutes * 60_000,
+    ).toISOString();
+    setDeparture(localTime(nextDeparture));
+    notify(`Đã điều chỉnh giờ xuất phát sớm hơn ${Math.abs(arrivalBufferMinutes)} phút.`);
+  }
+  function generateDemoItinerary() {
+    setBusy(true);
+    setSource('AI Demo · Hà Nội → Quảng Bình');
+    window.setTimeout(() => {
+      setText(exampleText);
+      importText(exampleText, 'AI Demo · Hà Nội → Quảng Bình');
+      setBusy(false);
+      notify('AI Demo đã tạo lịch Hà Nội → Quảng Bình. Bạn có thể chỉnh từng mốc trước khi tiếp tục.');
+    }, 650);
   }
   async function readFile(file: File) {
     if (file.size > 20 * 1024 * 1024) return notify('Vui lòng chọn tệp nhỏ hơn 20 MB.');
@@ -242,21 +379,21 @@ export function TripPlanner() {
       </div>
       {step === 1 && (
         <>
-          <div className="tabs">
+          <div className="tabs" data-tour="planner-mode">
             <button className={mode === 'manual' ? 'active' : ''} onClick={() => setMode('manual')}>
-              Tự lên lịch
+              Nhập thủ công
             </button>
             <button className={mode === 'import' ? 'active' : ''} onClick={() => setMode('import')}>
-              Nhập lịch trình
+              Tự tạo bằng AI
             </button>
           </div>
           {mode === 'import' ? (
             <Card>
-              <h2>Đưa lịch trình vào sổ tay</h2>
-              <p>Tải ảnh, PDF hoặc dán nội dung chuyến đi của bạn.</p>
+              <h2>Đưa lịch trình vào AI Demo</h2>
+              <p>Tải PDF, ảnh hoặc dán nội dung. Demo tạo một lịch trình có thể chỉnh sửa, không gửi dữ liệu ra ngoài.</p>
               <label className="upload-zone">
                 <Upload />
-                <strong>{busy ? 'Đang đọc tệp…' : 'Chọn ảnh hoặc PDF'}</strong>
+                <strong>{busy ? 'Đang đọc tài liệu…' : 'Tải ảnh hoặc PDF'}</strong>
                 <small>Tối đa 20 MB · Ảnh được giữ để đối chiếu</small>
                 <input
                   disabled={busy}
@@ -277,13 +414,13 @@ export function TripPlanner() {
                 <img className="itinerary-preview" src={filePreview} alt="Ảnh lịch trình đã tải" />
               )}
               <label>
-                Nội dung lịch trình
+                Nội dung hành trình
                 <textarea
                   rows={10}
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   placeholder={
-                    'Ngày 1\n07:00 Hà Nội | Khởi hành | 0\n10:00 Ninh Bình | Tham quan | 60\nNgày 2\n17:00 Đà Nẵng | Kết thúc | 0'
+                    'Dán lịch tour hoặc ghi các mốc địa điểm, hoạt động và thời lượng…'
                   }
                 />
               </label>
@@ -293,20 +430,19 @@ export function TripPlanner() {
               </small>
               <button
                 className="button full"
-                disabled={busy || !text.trim()}
-                onClick={() => importText(text, source || 'Nội dung đã dán')}
+                disabled={busy}
+                onClick={generateDemoItinerary}
               >
-                Tạo lịch từ nội dung <ArrowRight size={18} />
+                {busy ? 'Đang tạo lịch trình…' : 'Tạo lịch Hà Nội → Quảng Bình'} <ArrowRight size={18} />
               </button>
               <button
                 className="button secondary full"
-                onClick={() => {
-                  setText(exampleText);
-                  notify('Đã điền lịch trình gợi ý 3 ngày. Bạn có thể sửa trước khi tạo.');
-                }}
+                disabled={busy || !text.trim()}
+                onClick={() => importText(text, source || 'Nội dung đã dán')}
               >
-                Xem gợi ý Hà Nội → Đà Nẵng · 3 ngày
+                Tạo lịch từ nội dung đã nhập
               </button>
+              <p className="fine-print">AI Demo mô phỏng việc trích xuất thông tin; bạn luôn xem và chỉnh lịch trước khi lưu.</p>
             </Card>
           ) : (
             <form
@@ -314,7 +450,7 @@ export function TripPlanner() {
                 e.preventDefault();
                 if (Date.parse(isoTime(desired)) <= Date.parse(isoTime(departure)))
                   return notify('Giờ muốn đến cần sau giờ xuất phát.');
-                setStep(2);
+                enterRestPlanning();
               }}
             >
               <Card>
@@ -350,7 +486,7 @@ export function TripPlanner() {
                   />
                 </label>
                 <label>
-                  Thời điểm mong muốn đến
+                  Giờ đến mục tiêu
                   <input
                     required
                     type="datetime-local"
@@ -359,6 +495,7 @@ export function TripPlanner() {
                     onChange={(e) => setDesired(e.target.value)}
                   />
                 </label>
+                <p className="planning-hint">Đây là giờ app dùng để giữ khoảng đệm. Sau đó bạn sẽ thấy phương án nghỉ chân vẫn kiểm soát được giờ đến.</p>
                 <datalist id="journey-places">
                   {places.map((p) => (
                     <option key={p.name} value={p.name} />
@@ -462,69 +599,162 @@ export function TripPlanner() {
                   nếu tuyến của bạn khác.
                 </p>
               </Card>
-              <button className="button full">Tiếp tục · Chọn nơi nghỉ chân</button>
+              <button className="button full">Xem lịch trình cân bằng <ArrowRight size={18} /></button>
             </form>
           )}
         </>
       )}
       {step === 2 && (
         <>
-          <Card>
-            <h2>Nghỉ một chút, đi xa hơn</h2>
-            <p>
-              Các trạm trên chặng chưa có điểm nghỉ. Chọn trạm phù hợp; mỗi lần dừng mặc định 15
-              phút.
-            </p>
-            {!recommendations.length && (
-              <p>
-                Chưa có trạm phù hợp giữa các điểm này. Bạn vẫn có thể thêm điểm nghỉ trong lịch
-                trình.
-              </p>
-            )}
-            {recommendations.map((st) => (
-              <div className="rest-option" key={st.id}>
-                <img src="/images/station-ninh-binh.webp" alt={st.name} />
-                <label className="selection-card">
-                  <input
-                    type="checkbox"
-                    checked={rests[st.id] !== undefined}
-                    onChange={(e) =>
-                      setRests((a) => {
-                        const next = { ...a };
-                        if (e.target.checked) next[st.id] = 15;
-                        else delete next[st.id];
-                        return next;
-                      })
-                    }
-                  />
-                  <span>
-                    <strong>{st.name}</strong>
-                    <small>{st.facilities.join(' · ')}</small>
-                  </span>
-                </label>
-                {rests[st.id] !== undefined && (
-                  <label>
-                    Thời gian nghỉ (phút)
-                    <input
-                      type="number"
-                      min="15"
-                      max="240"
-                      value={rests[st.id]}
-                      onChange={(e) =>
-                        setRests((a) => ({
-                          ...a,
-                          [st.id]: Math.max(15, Math.min(240, Number(e.target.value))),
-                        }))
-                      }
-                    />
-                  </label>
-                )}
-              </div>
-            ))}
+          <Card className="route-preview-card" data-tour="route-preview">
+            <div className="row"><div><span className="eyebrow">TUYẾN ĐƯỜNG ĐỀ XUẤT</span><h2>{points[0].name} → {points.at(-1)?.name}</h2></div><Pill>{points.slice(1).reduce((total, point) => total + point.km, 0)} km</Pill></div>
+            <RouteArt origin={points[0].name} destination={points.at(-1)?.name ?? 'Quảng Bình'} progress={0.48} />
+            <div className="route-place-strip" aria-label="Các tỉnh thành đi qua">
+              {points.map((point) => <span key={point.id}>{point.name}</span>)}
+            </div>
+            <p className="fine-print">Tuyến và thời lượng là dữ liệu mô phỏng theo lịch đã chọn, không dùng GPS hoặc chỉ đường thời gian thực.</p>
+          </Card>
+          <Card className="rest-summary-card">
+            <span className="eyebrow">TỔNG THỜI GIAN HÀNH TRÌNH</span>
+            <div className="rest-summary-total">
+              <Clock size={22} />
+              <strong>{Math.floor(totalMinutes / 60)} giờ {totalMinutes % 60} phút</strong>
+            </div>
+            <div className="rest-summary-stats">
+              <span><strong>{points.slice(1).reduce((total, point) => total + point.km, 0)} km</strong> quãng đường</span>
+              <span><strong>{Math.floor(drivingMinutes / 60)} giờ {drivingMinutes % 60} phút</strong> lái xe</span>
+              <span><strong>{restMinutes} phút</strong> nghỉ chân</span>
+            </div>
           </Card>
           <ArrivalSummary />
-          <button className="button full" onClick={() => setStep(3)}>
-            Tiếp tục · Thông tin chuyến đi
+          {balancedStations.length > 0 && (
+            <Card className="balanced-plan-card">
+              <div>
+                <span className="eyebrow">PHƯƠNG ÁN ĐỀ XUẤT</span>
+                <h2>Lịch trình cân bằng</h2>
+                <p>Chúng tôi đã chọn {balancedStations.length} điểm nghỉ theo nhịp lái xe, tiện ích và khả năng phục vụ khách.</p>
+              </div>
+              <div className="balanced-plan-stops">
+                {balancedStations.map((station, index) => (
+                  <span key={station.id}><Check size={13} /> {station.name.replace('Trạm Việt ', '')} · {index === 0 ? 15 : 25} phút</span>
+                ))}
+              </div>
+              {balancedStations.some((station) => rests[station.id] === undefined) && (
+                <button className="button secondary full" onClick={applyBalancedStops}>
+                  <Check size={17} /> Dùng {balancedStations.length} điểm nghỉ đề xuất
+                </button>
+              )}
+            </Card>
+          )}
+          <div className="rest-list-heading">
+            <div>
+              <h2>Nghỉ chân trên hành trình</h2>
+              <p>Chọn trạm phù hợp để thêm vào lịch trình.</p>
+            </div>
+            <Pill>{selected.length} trạm đã chọn</Pill>
+          </div>
+          <div className="rest-timeline">
+            {routeTimeline.map((item) => {
+              const itemStation = item.kind === 'station' ? item.station : undefined;
+              const selectedStation = itemStation ? rests[itemStation.id] !== undefined : false;
+              const priorRest = selected
+                .filter((stop) => stop.km < item.routeKm)
+                .reduce((total, stop) => total + stop.minutes, 0);
+              const estimatedAt =
+                item.stop?.arrivalAt ??
+                new Date(
+                  Date.parse(isoTime(departure)) +
+                    Math.max(0, item.routeKm - startKm) * 60000 +
+                    priorRest * 60000,
+                ).toISOString();
+              return (
+                <div
+                  className={`rest-timeline-item ${item.kind === 'station' ? 'station-item' : 'waypoint-item'} ${selectedStation ? 'selected' : ''}`}
+                  key={`${item.kind}-${item.id}`}
+                >
+                  <div className={`rest-timeline-marker ${item.pointIndex === 0 ? 'origin-marker' : item.pointIndex === points.length - 1 ? 'destination-marker' : ''}`}>
+                    {item.kind === 'station' ? <Bus size={15} /> : <MapPin size={15} />}
+                  </div>
+                  <div className="rest-timeline-content">
+                    <div className="rest-stop-meta">
+                      <span>{item.pointIndex === 0 ? 'ĐIỂM XUẤT PHÁT' : item.pointIndex === points.length - 1 ? 'ĐIỂM ĐẾN' : itemStation ? 'TRẠM NGHỈ' : 'ĐIỂM TRÊN TUYẾN'}</span>
+                      <strong>{clock(estimatedAt)}</strong>
+                    </div>
+                    <div className="rest-stop-main">
+                      <div>
+                        <h3>{item.name}</h3>
+                        <small>{item.kind === 'station' ? itemStation?.address : item.note || `${Math.max(0, Math.round(item.routeKm - startKm))} km từ điểm xuất phát`}</small>
+                      </div>
+                      {itemStation && (
+                        <label className="rest-select-control">
+                          <input
+                            type="checkbox"
+                            aria-label={`Chọn ${itemStation.name} làm trạm nghỉ`}
+                            checked={selectedStation}
+                            onChange={(event) =>
+                              setRests((current) => {
+                                const next = { ...current };
+                                if (event.target.checked) next[itemStation.id] = 15;
+                                else delete next[itemStation.id];
+                                return next;
+                              })
+                            }
+                          />
+                          <span>{selectedStation ? 'Đã thêm vào lịch' : 'Thêm vào lịch'}</span>
+                        </label>
+                      )}
+                    </div>
+                    {itemStation && (
+                      <>
+                        <div className="rest-station-services">
+                          {itemStation.facilities.map((facility) => <span key={facility}>{facility}</span>)}
+                        </div>
+                        {selectedStation && (
+                          <p className="rest-selection-reason">
+                            {rests[itemStation.id]} phút nghỉ · {selected.length > 1 ? 'Khách có thể đặt trước để nhận nhanh khi xe đến.' : 'Phù hợp để nghỉ ngắn, dùng bữa hoặc vệ sinh.'}
+                          </p>
+                        )}
+                        <div className="rest-station-actions">
+                          <button className="button secondary" onClick={() => setDetailStationId(itemStation.id)}>
+                            Chi tiết
+                          </button>
+                          {selectedStation && (
+                            <label className="rest-duration-input">
+                              Nghỉ
+                              <input
+                                type="number"
+                                min="15"
+                                max="240"
+                                value={rests[itemStation.id]}
+                                onChange={(event) =>
+                                  setRests((current) => ({
+                                    ...current,
+                                    [itemStation.id]: Math.max(15, Math.min(240, Number(event.target.value))),
+                                  }))
+                                }
+                              />
+                              phút
+                            </label>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          {!recommendations.length && (
+            <Card className="rest-no-stations">
+              <p>Chưa có trạm gợi ý trên chặng này. Bạn vẫn có thể tiếp tục lịch trình hoặc quay lại điều chỉnh các điểm đến.</p>
+            </Card>
+          )}
+          <button className="button full" onClick={() => {
+            setStep(3);
+          }}>
+            {selected.length > 0
+              ? `Tiếp tục với ${selected.length} điểm nghỉ · đến ${clock(stops.at(-1)!.arrivalAt)}`
+              : 'Tiếp tục không có điểm nghỉ'}
           </button>
           <button className="button secondary full" onClick={() => setStep(1)}>
             Quay lại lịch trình
@@ -540,20 +770,62 @@ export function TripPlanner() {
         >
           <Card>
             <h2>Thông tin chuyến đi</h2>
-            <label>
-              Biển số xe
-              <input
-                value={plate}
-                required={user.role !== 'traveler'}
-                placeholder="Ví dụ: 29B-123.45"
-                onChange={(e) => setPlate(e.target.value)}
-              />
-            </label>
-            {user.role === 'coach' && user.company && (
-              <div className="alert">
-                <strong>Nhà xe: {user.company}</strong>
-                <small>Thông tin từ tài khoản tài xế đã đăng ký.</small>
-              </div>
+            {user.role !== 'traveler' && (
+              <>
+                <label>
+                  Biển số xe
+                  <select
+                    value={addPlate ? '__add__' : plate}
+                    required={!addPlate}
+                    onFocus={() => setAddPlate(false)}
+                    onChange={(event) => {
+                      if (event.target.value === '__add__') {
+                        setPlate('');
+                        setAddPlate(true);
+                      } else setPlate(event.target.value);
+                    }}
+                  >
+                    <option value="">Chọn xe đã lưu</option>
+                    {vehicleOptions.map((vehicle) => <option key={vehicle} value={vehicle}>{vehicle}</option>)}
+                    <option value="__add__">＋ Thêm xe mới</option>
+                  </select>
+                  {addPlate && (
+                    <input
+                      autoFocus
+                      required
+                      value={plate}
+                      placeholder="Nhập biển số xe"
+                      onChange={(event) => setPlate(event.target.value)}
+                    />
+                  )}
+                </label>
+                <label>
+                  Nhà xe
+                  <select
+                    value={addCompany ? '__add__' : company}
+                    onFocus={() => setAddCompany(false)}
+                    onChange={(event) => {
+                      if (event.target.value === '__add__') {
+                        setCompany('');
+                        setAddCompany(true);
+                      } else setCompany(event.target.value);
+                    }}
+                  >
+                    <option value="">Chọn nhà xe</option>
+                    {companyOptions.map((savedCompany) => <option key={savedCompany} value={savedCompany}>{savedCompany}</option>)}
+                    <option value="__add__">＋ Thêm nhà xe</option>
+                  </select>
+                  {addCompany && (
+                    <input
+                      autoFocus
+                      required
+                      value={company}
+                      placeholder="Nhập tên nhà xe"
+                      onChange={(event) => setCompany(event.target.value)}
+                    />
+                  )}
+                </label>
+              </>
             )}
             <label>
               Số người tham gia
@@ -593,33 +865,83 @@ export function TripPlanner() {
           </button>
         </>
       )}
+      {detailStation && (
+        <Modal title="Chi tiết trạm dừng" close={() => setDetailStationId(null)}>
+          <div className="rest-detail-cover">
+            <img src="/images/station-ninh-binh.webp" alt={detailStation.name} />
+            <Pill tone={detailStation.partner ? 'green' : 'blue'}>
+              {detailStation.partner ? 'Trạm đối tác' : 'Điểm dừng tham khảo'}
+            </Pill>
+          </div>
+          <h3 className="rest-detail-title">{detailStation.name}</h3>
+          <p className="rest-detail-address"><MapPin size={15} /> {detailStation.address}</p>
+          <p>{detailStation.description}</p>
+          <div className="rest-detail-hours">
+            <Clock size={17} />
+            <span>Mở cửa hàng ngày <strong>05:00 – 23:00</strong></span>
+          </div>
+          <h3 className="rest-detail-section-title">Dịch vụ tại trạm</h3>
+          <div className="rest-detail-facilities">
+            {detailStation.facilities.map((facility) => <span key={facility}>{facility}</span>)}
+          </div>
+          <h3 className="rest-detail-section-title">Món ngon và đặc sản</h3>
+          <div className="rest-detail-products">
+            {detailProducts.map((product) => (
+              <div className="rest-detail-product" key={product.id}>
+                {productPhotos[product.id] ? (
+                  <img src={`/images/${productPhotos[product.id]}.webp`} alt={product.name} />
+                ) : <span className="rest-detail-product-illustration">{product.illustration}</span>}
+                <strong>{product.name}</strong>
+                <span>{money(product.price)}</span>
+                <small><Clock size={12} /> {product.prepMinutes} phút chuẩn bị</small>
+              </div>
+            ))}
+          </div>
+          <button
+            className="button full"
+            onClick={() => {
+              setRests((current) => ({ ...current, [detailStation.id]: current[detailStation.id] ?? 15 }));
+              setDetailStationId(null);
+            }}
+          >
+            <Check size={17} /> Thêm trạm vào hành trình
+          </button>
+        </Modal>
+      )}
       <Link className="text-link center" to="/app/trips">
         Chuyến đi của tôi
       </Link>
     </>
   );
   function ArrivalSummary() {
-    const end = stops.at(-1)!.arrivalAt,
-      added = Math.round((Date.parse(end) - Date.parse(baseline)) / 60000),
-      late = Math.max(0, Math.round((Date.parse(end) - Date.parse(isoTime(desired))) / 60000));
+    const end = stops.at(-1)!.arrivalAt;
     return (
-      <Card className="blue-card">
-        <h3>Giờ đến điểm cuối</h3>
+      <Card className={`arrival-plan-card ${arrivalBufferMinutes < 0 ? 'needs-adjustment' : ''}`}>
+        <div className="arrival-plan-heading">
+          <div>
+            <span className="eyebrow">KIỂM SOÁT GIỜ ĐẾN</span>
+            <h3>{arrivalBufferMinutes >= 0 ? 'Lịch trình vẫn đúng giờ' : 'Cần điều chỉnh lịch trình'}</h3>
+          </div>
+          <Pill tone={arrivalBufferMinutes >= 0 ? 'green' : 'blue'}>
+            {arrivalBufferMinutes >= 0 ? `Còn ${arrivalBufferMinutes} phút đệm` : `Cần ${Math.abs(arrivalBufferMinutes)} phút`}
+          </Pill>
+        </div>
         <div className="row">
           <span>Dự kiến đến</span>
           <strong>
             {clock(end)} · {dateLabel(end)}
           </strong>
         </div>
-        <p>Thêm {added} phút nghỉ chân vào lịch trình.</p>
-        <small>
-          Mong muốn: {clock(isoTime(desired))} · {dateLabel(isoTime(desired))}
-        </small>
-        {late > 0 && (
-          <p className="error-text">
-            Muộn hơn mong muốn {late} phút. Cân nhắc xuất phát sớm hơn hoặc rút ngắn thời gian tham
-            quan.
-          </p>
+        <p>
+          {selected.length > 0
+            ? `${selected.length} điểm nghỉ · ${restMinutes} phút nghỉ chân được đưa vào kế hoạch.`
+            : 'Chưa có điểm nghỉ trong lịch trình này.'}
+        </p>
+        <small>Giờ đến mục tiêu: {clock(isoTime(desired))} · {dateLabel(isoTime(desired))}</small>
+        {arrivalBufferMinutes < 0 && (
+          <button className="button secondary full" onClick={leaveEarlierToProtectArrival}>
+            Xuất phát sớm hơn {Math.abs(arrivalBufferMinutes)} phút để giữ kế hoạch
+          </button>
         )}
       </Card>
     );

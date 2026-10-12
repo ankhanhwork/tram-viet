@@ -1,6 +1,6 @@
 import type { DemoData, MerchantOrder, Order, Product, Trip } from '../types';
 export const DEMO_TIME = '2026-10-03T08:33:00+07:00';
-export const MAIN_TRIP = 'trip-hn-dn';
+export const MAIN_TRIP = 'trip-hn-qb';
 export const MAIN_STATION = 'station-ninh-binh';
 export const DEFAULT_MERCHANT = 'merchant-com-viet';
 const at = (time: string) => `2026-10-03T${time}:00+07:00`;
@@ -130,12 +130,12 @@ const products: Product[] = [
 export function createSeed(): DemoData {
   const main: Trip = {
     id: MAIN_TRIP,
-    title: 'Hà Nội → Đà Nẵng',
+    title: 'Hà Nội → Quảng Bình',
     origin: 'Hà Nội',
-    destination: 'Đà Nẵng',
+    destination: 'Đồng Hới · Quảng Bình',
     ownerId: 'user-minh',
     members: [],
-    publicTripCode: 'HN-DN-A8K29',
+    publicTripCode: 'HN-QB-A8K29',
     status: 'EN_ROUTE',
     plate: '29B-123.45',
     company: 'Hoàng Long Express',
@@ -146,21 +146,36 @@ export function createSeed(): DemoData {
       { id: 'stop-origin', name: 'Hà Nội', arrivalAt: at('07:00'), restMinutes: 0 },
       {
         id: 'stop-nb',
-        name: 'Trạm Việt Ninh Bình',
+        name: 'Ninh Bình',
         stationId: MAIN_STATION,
         arrivalAt: at('09:15'),
         restMinutes: 20,
       },
-      { id: 'stop-th', name: 'Thanh Hóa', arrivalAt: at('11:45'), restMinutes: 0 },
+      {
+        id: 'stop-th',
+        name: 'Thanh Hóa',
+        arrivalAt: at('11:30'),
+        restMinutes: 0,
+      },
       {
         id: 'stop-na',
-        name: 'Trạm Việt Nghệ An',
-        stationId: 'station-nghe-an',
-        arrivalAt: at('14:30'),
-        restMinutes: 30,
+        name: 'Vinh · Nghệ An',
+        arrivalAt: at('14:00'),
+        restMinutes: 0,
       },
-      { id: 'stop-hue', name: 'Huế', arrivalAt: at('17:30'), restMinutes: 0 },
-      { id: 'stop-dn', name: 'Đà Nẵng', arrivalAt: at('20:00'), restMinutes: 0 },
+      {
+        id: 'stop-ht',
+        name: 'Hà Tĩnh',
+        arrivalAt: at('15:45'),
+        restMinutes: 0,
+      },
+      {
+        id: 'stop-qb',
+        name: 'Đồng Hới · Quảng Bình',
+        arrivalAt: at('18:00'),
+        restMinutes: 0,
+        note: 'Nhận phòng, khám phá Phong Nha – Kẻ Bàng và biển Nhật Lệ.',
+      },
     ],
   };
   const trips: Trip[] = [
@@ -181,8 +196,8 @@ export function createSeed(): DemoData {
     {
       ...main,
       id: 'trip-futa',
-      title: 'Hà Nội → Huế',
-      destination: 'Huế',
+      title: 'Hà Nội → Quảng Bình',
+      destination: 'Đồng Hới · Quảng Bình',
       ownerId: 'user-futa',
       members: [],
       company: 'FUTA Charter',
@@ -190,7 +205,7 @@ export function createSeed(): DemoData {
       passengerCount: 44,
       partnerTrip: false,
       commissionEligible: false,
-      publicTripCode: 'HN-HUE-F2K73',
+      publicTripCode: 'HN-QB-F2K73',
       stops: [{ ...main.stops[1], id: 'stop-futa-nb', arrivalAt: at('10:15') }],
     },
   ];
@@ -205,7 +220,7 @@ export function createSeed(): DemoData {
     const id = `seed-${trip.id}-${index}`;
     const partId = `${id}-part`;
     const merchantId = products.find((p) => p.id === entries[0][0])!.merchantId;
-    const status = (['NEW', 'ACCEPTED', 'PREPARING', 'READY'] as const)[index % 4];
+    const status = (['ACCEPTED', 'PREPARING', 'READY', 'PICKED_UP'] as const)[index % 4];
     orders.push({
       id,
       publicOrderCode: `TV-${trip.id === MAIN_TRIP ? 'NB' : trip.id === 'trip-mai-linh' ? 'ML' : 'FT'}-${String(index + 1).padStart(3, '0')}`,
@@ -219,7 +234,7 @@ export function createSeed(): DemoData {
       paymentStatus: 'PAID',
       createdAt: at('08:00'),
     });
-    const sequence = ['NEW', 'ACCEPTED', 'PREPARING', 'READY'] as const;
+    const sequence = ['NEW', 'ACCEPTED', 'PREPARING', 'READY', 'PICKED_UP'] as const;
     merchantOrders.push({
       id: partId,
       orderId: id,
@@ -299,6 +314,7 @@ export function createSeed(): DemoData {
         email: 'minh@demo.vn',
         role: 'coach',
         partnerStatus: 'approved',
+        commissionRate: 5,
         company: 'Hoàng Long Express',
         plate: '29B-123.45',
       },
@@ -323,6 +339,7 @@ export function createSeed(): DemoData {
         email: 'mai@demo.vn',
         role: 'coach',
         partnerStatus: 'approved',
+        commissionRate: 4,
       },
       {
         id: 'user-futa',
@@ -357,6 +374,14 @@ export function createSeed(): DemoData {
         address: 'Cao tốc Bắc – Nam · Nghệ An',
         description: 'Không gian rộng rãi, đặc sản xứ Nghệ và cà phê.',
         facilities: ['Ẩm thực', 'Cà phê', 'Đặc sản', 'Bãi đỗ xe'],
+        partner: true,
+      },
+      {
+        id: 'station-ha-tinh',
+        name: 'Trạm Việt Hà Tĩnh',
+        address: 'Cao tốc Bắc – Nam · Hà Tĩnh',
+        description: 'Trạm nghỉ đề xuất trước khi vào Quảng Bình.',
+        facilities: ['Ẩm thực', 'WC sạch', 'Cà phê', 'Bãi đỗ xe'],
         partner: true,
       },
       {
@@ -405,8 +430,109 @@ export function createSeed(): DemoData {
         username: 'sieuthi@demo.vn',
         password: 'demo123',
       },
+      {
+        id: 'merchant-thanh-hoa',
+        stationId: 'station-thanh-hoa',
+        name: 'Đặc sản Xứ Thanh',
+        counter: 'A01',
+        acceptingOrders: true,
+        username: 'xuthanh@demo.vn',
+        password: 'demo123',
+      },
+      {
+        id: 'merchant-nghe-an',
+        stationId: 'station-nghe-an',
+        name: 'Ẩm thực Xứ Nghệ',
+        counter: 'A01',
+        acceptingOrders: true,
+        username: 'xunghe@demo.vn',
+        password: 'demo123',
+      },
+      {
+        id: 'merchant-hue',
+        stationId: 'station-hue',
+        name: 'Bếp Cố đô',
+        counter: 'A01',
+        acceptingOrders: true,
+        username: 'bepcodohue@demo.vn',
+        password: 'demo123',
+      },
     ],
-    products: structuredClone(products),
+    products: [
+      ...structuredClone(products),
+      {
+        id: 'nem-chua-thanh-hoa',
+        merchantId: 'merchant-thanh-hoa',
+        stationId: 'station-thanh-hoa',
+        name: 'Nem chua Thanh Hóa',
+        description: 'Nem chua vị chua dịu, gói riêng tiện mang theo hành trình.',
+        category: 'SPECIALTY',
+        price: 45000,
+        prepMinutes: 3,
+        available: true,
+        illustration: '🌶️',
+      },
+      {
+        id: 'che-lam-thanh-hoa',
+        merchantId: 'merchant-thanh-hoa',
+        stationId: 'station-thanh-hoa',
+        name: 'Chè lam Phủ Quảng',
+        description: 'Đặc sản dẻo thơm gừng, đóng gói sẵn để làm quà.',
+        category: 'SPECIALTY',
+        price: 55000,
+        prepMinutes: 2,
+        available: true,
+        illustration: '🍘',
+      },
+      {
+        id: 'chao-luon-nghe-an',
+        merchantId: 'merchant-nghe-an',
+        stationId: 'station-nghe-an',
+        name: 'Cháo lươn xứ Nghệ',
+        description: 'Cháo nóng thơm tiêu, lươn đồng đậm vị Nghệ An.',
+        category: 'FOOD',
+        price: 65000,
+        prepMinutes: 12,
+        available: true,
+        illustration: '🍲',
+      },
+      {
+        id: 'nuoc-che-nghe-an',
+        merchantId: 'merchant-nghe-an',
+        stationId: 'station-nghe-an',
+        name: 'Nước chè xanh',
+        description: 'Chè xanh xứ Nghệ pha mới, phục vụ nóng hoặc thêm đá.',
+        category: 'DRINK',
+        price: 15000,
+        prepMinutes: 3,
+        available: true,
+        illustration: '🍵',
+      },
+      {
+        id: 'bun-bo-hue',
+        merchantId: 'merchant-hue',
+        stationId: 'station-hue',
+        name: 'Bún bò Huế',
+        description: 'Nước dùng đậm đà, thịt bò mềm và rau ăn kèm.',
+        category: 'FOOD',
+        price: 70000,
+        prepMinutes: 14,
+        available: true,
+        illustration: '🍜',
+      },
+      {
+        id: 'me-xung-hue',
+        merchantId: 'merchant-hue',
+        stationId: 'station-hue',
+        name: 'Mè xửng Huế',
+        description: 'Kẹo mè xửng dẻo thơm, đóng gói sẵn làm quà.',
+        category: 'SPECIALTY',
+        price: 50000,
+        prepMinutes: 2,
+        available: true,
+        illustration: '🍬',
+      },
+    ],
     orders,
     merchantOrders,
     kitchenTickets: [],
@@ -422,5 +548,8 @@ export function createSeed(): DemoData {
     autoPrint: true,
     sound: false,
     appInstalled: false,
+    demoGuideEnabled: false,
+    demoGuideStep: 0,
+    guestLanguage: 'vi',
   };
 }

@@ -1,25 +1,27 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
   Bus,
+  CalendarDays,
   Check,
+  ChevronRight,
   Clock,
   Copy,
+  Map,
   MapPin,
+  Navigation,
   Plus,
   QrCode,
   Share2,
   ShoppingBag,
   Users,
-  Wallet,
 } from 'lucide-react';
 import QRCode from 'qrcode';
 import {
   Back,
   Card,
   Empty,
-  Metric,
   Missing,
   Modal,
   Pill,
@@ -33,7 +35,6 @@ import {
 import { useDemoStore } from '../../store/useDemoStore';
 import {
   clock,
-  commission,
   currentStop,
   dateLabel,
   etaMinutes,
@@ -51,60 +52,198 @@ const roleLabels: Record<User['role'], string> = {
 };
 export function TravelHome() {
   const s = useDemoStore();
+  const navigate = useNavigate();
   const user = s.users.find((u) => u.id === s.currentUserId)!;
+  const [homeTab, setHomeTab] = useState<'plan' | 'nearby'>('plan');
+  const [origin, setOrigin] = useState('Hà Nội');
+  const [destination, setDestination] = useState('Đồng Hới · Quảng Bình');
+  const defaultDate = new Date(Date.parse(s.demoTime) + 7 * 3600000)
+    .toISOString()
+    .slice(0, 10);
+  const [departureDate, setDepartureDate] = useState(defaultDate);
   const trip = s.trips.find(
     (t) => (t.ownerId === user.id || t.members.includes(user.id)) && t.status !== 'ARRIVED',
   );
+  const suggestedStation = s.stations.find((station) => station.id === 'station-ninh-binh');
+  const stationTrip = suggestedStation
+    ? s.trips.find((t) => t.stops.some((stop) => stop.stationId === suggestedStation.id))
+    : undefined;
+  const stationDistance = '2,1 km';
+
+  function startPlanning(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const query = new URLSearchParams({
+      mode: 'manual',
+      from: origin.trim(),
+      to: destination.trim(),
+      date: departureDate,
+    });
+    navigate(`/app/trips/new?${query.toString()}`);
+  }
+
   return (
     <>
-      <div className="welcome">
+      <div className="welcome home-welcome">
         <div>
-          <p>Chào {user.name.split(' ').at(-1)},</p>
-          <h1>Đi xa, an tâm hơn.</h1>
+          <p>Xin chào,</p>
+          <h1>{user.name}</h1>
+          <span>Chúc bạn có một hành trình an toàn!</span>
         </div>
-        <span className="avatar">{user.name.split(' ').at(-1)?.slice(0, 1)}</span>
+        <Link className="home-avatar" to="/app/profile" aria-label="Mở hồ sơ">
+          {user.name.split(' ').at(-1)?.slice(0, 1)}
+        </Link>
       </div>
-      <Card className="planner-card">
-        <span className="eyebrow">MỖI CHUYẾN ĐI, MỘT CÂU CHUYỆN</span>
-        <h2>Lên lịch. Cùng đi. Khám phá.</h2>
-        <p>Tất cả điểm đến, giờ di chuyển và nơi nghỉ chân trong một cuốn sổ tay.</p>
-        <RouteArt origin="Hà Nội" destination="Đà Nẵng" />
-        <Link className="button full" to="/app/trips/new?mode=import">
-          Nhập lịch trình từ ảnh, PDF hoặc văn bản <ArrowRight size={18} />
-        </Link>
-        <Link className="button secondary full" to="/app/trips/new?mode=manual">
-          <Plus size={18} /> Tự lên lịch trình
-        </Link>
-      </Card>
-      {trip ? (
-        <>
-          <div className="section-heading">
-            <h2>Hành trình của bạn</h2>
-            <TextLink to="/app/trips">Tất cả</TextLink>
+      <Card className="home-planner">
+        <div className="home-tabs" role="tablist" aria-label="Tìm hành trình hoặc trạm">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={homeTab === 'plan'}
+            className={homeTab === 'plan' ? 'active' : ''}
+            onClick={() => setHomeTab('plan')}
+          >
+            <MapPin size={18} /> Lên lịch trình
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={homeTab === 'nearby'}
+            className={homeTab === 'nearby' ? 'active' : ''}
+            onClick={() => setHomeTab('nearby')}
+          >
+            <Map size={18} /> Tìm trạm gần bạn
+          </button>
+        </div>
+        {homeTab === 'plan' ? (
+          <form className="home-plan-form" onSubmit={startPlanning}>
+            <label className="home-route-input">
+              <span>Từ</span>
+              <i className="home-route-dot origin-dot" aria-hidden="true" />
+              <input
+                required
+                aria-label="Điểm xuất phát"
+                value={origin}
+                onChange={(event) => setOrigin(event.target.value)}
+                placeholder="Điểm xuất phát"
+              />
+              <button
+                type="button"
+                className="home-swap"
+                aria-label="Đổi điểm đi và điểm đến"
+                onClick={() => {
+                  setOrigin(destination);
+                  setDestination(origin);
+                }}
+              >
+                ↕
+              </button>
+            </label>
+            <label className="home-route-input">
+              <span>Đến</span>
+              <i className="home-route-dot destination-dot" aria-hidden="true" />
+              <input
+                required
+                aria-label="Điểm đến"
+                value={destination}
+                onChange={(event) => setDestination(event.target.value)}
+                placeholder="Điểm đến"
+              />
+              <span className="home-route-spacer" />
+            </label>
+            <label className="home-date-input">
+              <span>Ngày đi</span>
+              <CalendarDays size={18} />
+              <input
+                aria-label="Ngày khởi hành"
+                type="date"
+                required
+                value={departureDate}
+                onChange={(event) => setDepartureDate(event.target.value)}
+              />
+            </label>
+            <button className="button full home-plan-submit">
+              Lên lịch trình <ArrowRight size={18} />
+            </button>
+          </form>
+        ) : (
+          <div className="home-nearby-panel">
+            <div className="home-demo-location">
+              <Navigation size={17} />
+              <span>
+                Vị trí mô phỏng <strong>Ninh Bình</strong>
+              </span>
+              <Pill>Demo</Pill>
+            </div>
+            {suggestedStation && (
+              <Link
+                className="home-station-card"
+                to={stationTrip ? `/app/trips/${stationTrip.id}/station/${suggestedStation.id}` : '/app/trips/new'}
+              >
+                <img src="/images/station-ninh-binh.webp" alt="Trạm Việt Ninh Bình" />
+                <div className="home-station-copy">
+                  <strong>{suggestedStation.name}</strong>
+                  <small>{stationDistance} · {suggestedStation.address}</small>
+                  <span className="home-facilities">Ẩm thực · WC · Nghỉ ngơi · Mua sắm</span>
+                </div>
+                <ChevronRight size={19} />
+              </Link>
+            )}
+            <p className="home-demo-note">Khoảng cách minh họa; ứng dụng không truy cập GPS.</p>
           </div>
-          <Card>
-            <Pill>{trip.status === 'READY' ? 'Sắp khởi hành' : 'Đang trên đường'}</Pill>
-            <h2>{trip.title}</h2>
-            <p>
-              {trip.company ?? user.name} · {trip.plate || 'Chuyến cá nhân'}
-            </p>
-            <Link className="button full" to={`/app/trips/${trip.id}`}>
-              Mở sổ tay hành trình <ArrowRight size={18} />
-            </Link>
-          </Card>
-        </>
+        )}
+      </Card>
+
+      <div className="section-heading home-section-heading">
+        <h2>{trip ? 'Chuyến đi đang diễn ra' : 'Hành trình của bạn'}</h2>
+        <TextLink to="/app/trips">Xem tất cả <ChevronRight size={15} /></TextLink>
+      </div>
+      {trip ? (
+        <Link className="card home-live-trip" to={`/app/trips/${trip.id}`}>
+          <div className="home-live-topline">
+            <span className="home-company-mark">{trip.company?.slice(0, 2).toUpperCase() ?? 'TV'}</span>
+            <div className="home-live-company">
+              <strong>{trip.company ?? user.name}</strong>
+              <small>{trip.origin} → {trip.destination}</small>
+            </div>
+            <Pill tone={trip.status === 'READY' ? 'blue' : 'green'}>
+              {trip.status === 'READY' ? 'Sắp khởi hành' : 'Đang di chuyển'}
+            </Pill>
+          </div>
+          <div className="home-route-progress" aria-label={`Hành trình ${trip.origin} đến ${trip.destination}`}>
+            <span className="progress-origin"><i /></span>
+            <span className="progress-current"><Bus size={13} /></span>
+            <span className="progress-destination"><i /></span>
+          </div>
+          <div className="home-route-labels">
+            <span>{trip.origin}<small>Đã khởi hành</small></span>
+            <span className="home-next-stop">
+              {trip.stops.find((stop) => stop.stationId)?.name.replace('Trạm Việt ', '') ?? trip.destination}
+              <small>Điểm dừng tiếp theo</small>
+            </span>
+            <span>{trip.destination}<small>Dự kiến</small></span>
+          </div>
+          <div className="home-trip-footer">
+            <span><MapPin size={17} /> {trip.stops.find((stop) => stop.stationId)?.name ?? trip.destination}</span>
+            <strong>{trip.plate ?? 'Chuyến cá nhân'}</strong>
+            <ChevronRight size={18} />
+          </div>
+        </Link>
       ) : (
-        <Card>
-          <h2>Chuyến đi đầu tiên bắt đầu từ đây</h2>
-          <p>
-            Nhập lịch trình của bạn hoặc tham gia chuyến được chia sẻ để cùng theo dõi từ đầu đến
-            cuối.
-          </p>
-          <TextLink to="/app/trips/join">Tham gia bằng mã chuyến</TextLink>
+        <Card className="home-empty-trip">
+          <div className="home-empty-icon"><Bus size={22} /></div>
+          <div>
+            <h3>Chưa có chuyến đi đang diễn ra</h3>
+            <p>Tạo hành trình mới hoặc tham gia chuyến được chia sẻ.</p>
+          </div>
+          <Link className="home-inline-link" to="/app/trips">Xem chuyến đi <ChevronRight size={15} /></Link>
         </Card>
       )}
+
+      <div className="section-heading home-section-heading">
+        <h2>Tiện ích nhanh</h2>
+      </div>
       <div className="quick-actions">
-        <Link to="/app/trips/new">
+        <Link to="/app/trips/new?mode=manual">
           <Plus />
           Tạo chuyến
         </Link>
@@ -114,13 +253,35 @@ export function TravelHome() {
         </Link>
         <Link to={trip ? `/app/trips/${trip.id}/share` : '/app/trips'}>
           <QrCode />
-          Chuyến đi
+          QR chuyến đi
         </Link>
         <Link to="/app/orders">
           <ShoppingBag />
           Đơn hàng
         </Link>
       </div>
+      {suggestedStation && (
+        <>
+          <div className="section-heading home-section-heading home-station-heading">
+            <h2>Trạm gợi ý cho bạn</h2>
+            <button className="link-button" onClick={() => setHomeTab('nearby')}>
+              Xem thêm <ChevronRight size={15} />
+            </button>
+          </div>
+          <Link
+            className="card home-featured-station"
+            to={stationTrip ? `/app/trips/${stationTrip.id}/station/${suggestedStation.id}` : '/app/trips/new'}
+          >
+            <img src="/images/station-ninh-binh.webp" alt="Trạm Việt Ninh Bình" />
+            <div>
+              <strong>{suggestedStation.name}</strong>
+              <small>{stationDistance} · {suggestedStation.address}</small>
+              <span className="home-rating"><span aria-hidden="true">★</span> 4.8 <small>(320 đánh giá)</small></span>
+            </div>
+            <ChevronRight size={19} />
+          </Link>
+        </>
+      )}
     </>
   );
 }
@@ -199,7 +360,7 @@ export function MyTrips() {
 export function JoinTrip() {
   const s = useDemoStore();
   const navigate = useNavigate();
-  const [code, setCode] = useState('HN-DN-A8K29');
+  const [code, setCode] = useState('HN-QB-A8K29');
   return (
     <>
       <Back title="Tham gia chuyến đi" to="/app/trips" />
@@ -234,7 +395,6 @@ export function TripDetail({ live = false }: { live?: boolean }) {
   const own = trip.ownerId === s.currentUserId;
   const stop = currentStop(trip);
   const m = metrics(s.merchantOrders.filter((p) => p.tripId === trip.id));
-  const c = commission(s, trip.ownerId);
   const arrived = trip.status === 'AT_STATION';
   const resting = stop.checkedInAt
     ? Math.max(
@@ -273,6 +433,12 @@ export function TripDetail({ live = false }: { live?: boolean }) {
         origin={trip.origin}
         destination={stop.name.replace('Trạm Việt ', '')}
       />
+      <div className="section-heading">
+        <h2>Lịch trình chuyến đi</h2>
+      </div>
+      <Card>
+        <Timeline trip={trip} />
+      </Card>
       <Card className="next-station-card">
         <div className="row">
           <span className="eyebrow">{arrived ? 'XE ĐÃ ĐẾN' : 'ĐIỂM DỪNG TIẾP THEO'}</span>
@@ -336,15 +502,9 @@ export function TripDetail({ live = false }: { live?: boolean }) {
           )}
         </div>
       )}
-      <div className="section-heading">
-        <h2>Lịch trình chuyến đi</h2>
-      </div>
-      <Card>
-        <Timeline trip={trip} />
-      </Card>
-      {own && owner?.partnerStatus === 'approved' && trip.commissionEligible && (
+      {own && (
         <Card className="blue-card">
-          <span className="eyebrow">CHUYẾN ĐỐI TÁC</span>
+          <span className="eyebrow">ĐƠN KHÁCH TRÊN XE</span>
           <div className="mini-metrics">
             <div>
               <strong>{m.customers}</strong>
@@ -355,7 +515,7 @@ export function TripDetail({ live = false }: { live?: boolean }) {
               <small>Giá trị đặt trước</small>
             </div>
           </div>
-          <TextLink to="/app/earnings">Hoa hồng đã kiếm: {money(c.earned)}</TextLink>
+          <p className="fine-print">Tổng giá trị giúp bạn theo dõi nhu cầu hành khách trong chuyến.</p>
         </Card>
       )}
       {!own && (
@@ -400,7 +560,7 @@ export function TripDetail({ live = false }: { live?: boolean }) {
 export function ShareTrip() {
   const { trip, base } = useTripContext();
   const [qr, setQr] = useState('');
-  const url = trip ? `${window.location.origin}/t/${trip.publicTripCode}` : '';
+  const url = trip ? `${window.location.origin}/t/${trip.publicTripCode}?guide=1` : '';
   useEffect(() => {
     let active = true;
     if (url)
@@ -470,7 +630,7 @@ export function ShareTrip() {
           <Share2 size={17} />
           Chia sẻ
         </button>
-        <Link className="text-link center" to={`/t/${trip.publicTripCode}`}>
+        <Link className="text-link center" to={`/t/${trip.publicTripCode}?guide=1`}>
           Trải nghiệm như hành khách <ArrowRight size={16} />
         </Link>
       </Card>
@@ -602,7 +762,7 @@ export function Profile({ partner = false }: { partner?: boolean }) {
         <span className="avatar large">{u.name.split(' ').at(-1)?.[0]}</span>
         <h2>{u.name}</h2>
         <p>{roleLabels[u.role]}</p>
-        {u.partnerStatus === 'approved' && <Pill tone="green">Đối tác đã được duyệt · 5%</Pill>}
+        {u.partnerStatus === 'approved' && <Pill tone="green">Đối tác đã được duyệt</Pill>}
         {u.partnerStatus === 'pending' && <Pill tone="amber">Hồ sơ đối tác đang chờ duyệt</Pill>}
         <button className="button secondary" onClick={() => setEdit(true)}>
           Chỉnh sửa hồ sơ
@@ -637,9 +797,7 @@ export function Profile({ partner = false }: { partner?: boolean }) {
                 <Check size={17} />
                 Thông tin tài xế, nhà xe và phương tiện đã xác minh.
               </p>
-              <Link className="button full" to="/app/earnings">
-                Xem thu nhập
-              </Link>
+              <p className="success-text"><Check size={17} />Thông tin nhà xe và phương tiện đã xác minh.</p>
             </>
           ) : u.role === 'coach' && u.partnerStatus === 'none' ? (
             <button
@@ -683,8 +841,8 @@ export function Profile({ partner = false }: { partner?: boolean }) {
               </h2>
               <p>
                 {u.partnerStatus === 'approved'
-                  ? 'Theo dõi hồ sơ hợp tác và hoa hồng của bạn.'
-                  : 'Đăng ký hợp tác và chờ duyệt để mở quyền hoa hồng.'}
+                  ? 'Theo dõi hồ sơ hợp tác, nhà xe và phương tiện của bạn.'
+                  : 'Đăng ký hợp tác để trạm xác minh nhà xe và phương tiện.'}
               </p>
               <TextLink to="/app/partner">
                 {u.partnerStatus === 'approved' ? 'Xem hồ sơ đối tác' : 'Chương trình đối tác'}
@@ -730,62 +888,5 @@ export function Profile({ partner = false }: { partner?: boolean }) {
   );
 }
 export function Earnings() {
-  const s = useDemoStore();
-  const u = s.users.find((u) => u.id === s.currentUserId)!;
-  if (u.partnerStatus !== 'approved') return <Navigate to="/app/profile" replace />;
-  const c = commission(s, u.id);
-  const mine = s.trips.filter((t) => t.ownerId === u.id && t.commissionEligible);
-  return (
-    <>
-      <Title
-        title="Thu nhập đối tác"
-        description="Hoa hồng 5% trên phần đơn đủ điều kiện đã bàn giao."
-      />
-      <Card className="earnings-hero">
-        <Wallet size={25} />
-        <p>Hoa hồng đã kiếm được</p>
-        <h1 data-testid="earned-commission">{money(c.earned)}</h1>
-        <small>Chờ đối soát · Thanh toán chỉ</small>
-      </Card>
-      <div className="two-col">
-        <Metric
-          label="Hoa hồng dự kiến"
-          value={money(c.expected)}
-          detail="Các phần đơn chưa bàn giao"
-        />
-        <Metric label="Doanh thu hoàn tất" value={money(c.completed)} detail="Đơn đủ điều kiện" />
-      </div>
-      <Card>
-        <div className="row">
-          <span>Đơn khách được attribution</span>
-          <strong>{c.customers}</strong>
-        </div>
-        <div className="row">
-          <span>Tổng giá trị đặt trước</span>
-          <strong>{money(c.total)}</strong>
-        </div>
-      </Card>
-      <div className="section-heading">
-        <h2>Theo từng chuyến</h2>
-      </div>
-      {mine.map((t) => {
-        const m = metrics(s.merchantOrders.filter((p) => p.tripId === t.id));
-        return (
-          <Card key={t.id}>
-            <h3>{t.title}</h3>
-            <p>
-              {m.customers} đơn khách · {money(m.total)}
-            </p>
-            <div className="row">
-              <span>Đã kiếm / Dự kiến</span>
-              <strong>
-                {money(m.completed * 0.05)} / {money(m.pending * 0.05)}
-              </strong>
-            </div>
-            <TextLink to={`/app/trips/${t.id}`}>Xem hành trình</TextLink>
-          </Card>
-        );
-      })}
-    </>
-  );
+  return <Navigate to="/app/profile" replace />;
 }

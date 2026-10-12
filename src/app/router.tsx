@@ -6,7 +6,6 @@ import Landing from '../pages/demo/Landing';
 import Controller from '../pages/demo/Controller';
 import { PlaceDetail } from '../features/trips/PlaceDetail';
 import {
-  Earnings,
   JoinTrip,
   MyTrips,
   Profile,
@@ -28,6 +27,7 @@ import {
 } from '../features/ordering/Shopping';
 import {
   MerchantLogin,
+  MerchantHistory,
   MerchantMenu,
   MerchantOrderDetail,
   MerchantOrders,
@@ -98,7 +98,7 @@ export const router = createBrowserRouter([
           { path: 'orders/:orderId', element: <OrderTracking /> },
           { path: 'profile', element: <Profile /> },
           { path: 'partner', element: <Profile partner /> },
-          { path: 'earnings', element: <Earnings /> },
+          { path: 'earnings', element: <Navigate to="/app/profile" replace /> },
         ],
       },
       {
@@ -126,6 +126,7 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="orders" replace /> },
           { path: 'orders', element: <MerchantOrders /> },
           { path: 'orders/:partId', element: <MerchantOrderDetail /> },
+          { path: 'history', element: <MerchantHistory /> },
           { path: 'menu', element: <MerchantMenu /> },
           { path: 'today', element: <MerchantToday /> },
         ],

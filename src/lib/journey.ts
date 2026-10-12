@@ -48,6 +48,18 @@ export const places = [
     highlights: 'Ẩm thực Nghệ An · Nghỉ ngơi',
   },
   {
+    name: 'Vinh · Nghệ An',
+    km: 310,
+    description: 'Mốc lớn trên tuyến Bắc Trung Bộ, phù hợp để kiểm tra tiến độ hành trình và lựa chọn điểm nghỉ tiếp theo.',
+    highlights: 'Thành phố Vinh · Ẩm thực xứ Nghệ · Nghỉ ngơi',
+  },
+  {
+    name: 'Hà Tĩnh',
+    km: 390,
+    description: 'Tỉnh trên cung đường vào Quảng Bình. Có thể chọn trạm nghỉ phù hợp trước chặng cuối.',
+    highlights: 'Bắc Trung Bộ · Nghỉ chân · Đặc sản địa phương',
+  },
+  {
     name: 'Trạm Việt Nghệ An',
     km: 330,
     description:
@@ -60,6 +72,12 @@ export const places = [
     description:
       'Thành phố ven biển Quảng Bình, phù hợp để dừng ăn trưa hoặc nghỉ qua đêm trên đường đi Huế.',
     highlights: 'Biển Nhật Lệ · Ẩm thực Quảng Bình',
+  },
+  {
+    name: 'Đồng Hới · Quảng Bình',
+    km: 500,
+    description: 'Điểm đến ven biển Quảng Bình. Dành thời gian cho Phong Nha – Kẻ Bàng, Suối Moọc, Sông Chày – Hang Tối, biển Nhật Lệ và đồi cát Quang Phú.',
+    highlights: 'Phong Nha · Suối Moọc · Nhật Lệ · Đồi cát Quang Phú',
   },
   {
     name: 'Huế',
@@ -234,7 +252,7 @@ export function schedule(
   });
   return output;
 }
-export const exampleText = `Ngày 1\n07:00 Hà Nội | Tập trung và khởi hành | 0\n10:00 Tràng An, Ninh Bình | Tham quan cảnh quan, đi thuyền | 120\n14:00 Thanh Hóa | Ăn trưa, nghỉ ngơi | 60\nNgày 2\n08:00 Đại Nội Huế | Tham quan kiến trúc cung đình | 120\n11:00 Chùa Thiên Mụ | Ngắm cảnh bên sông Hương | 60\n14:00 Lăng Cô | Nghỉ ngơi, ngắm biển | 45\n17:00 Đà Nẵng | Nhận phòng và dùng bữa | 90\n20:00 Cầu Rồng | Dạo bên sông Hàn | 60\nNgày 3\n06:00 Biển Mỹ Khê | Đón bình minh | 60\n09:00 Ngũ Hành Sơn | Tham quan, chụp ảnh | 90\n12:00 Đà Nẵng | Kết thúc hành trình | 0`;
+export const exampleText = `Ngày 1\n07:00 Hà Nội | Tập trung và khởi hành | 0\n09:15 Ninh Bình | Nghỉ chân, nhận món đặt trước | 20\n11:30 Thanh Hóa | Mốc hành trình Bắc Trung Bộ | 0\n14:00 Vinh · Nghệ An | Kiểm tra tiến độ, chọn trạm nghỉ | 0\n15:45 Hà Tĩnh | Đi qua tuyến vào Quảng Bình | 0\n18:00 Đồng Hới · Quảng Bình | Nhận phòng, khám phá Nhật Lệ và Phong Nha | 0`;
 export function parseItinerary(text: string, departure: string): Waypoint[] {
   let day = 0;
   const base = departure.slice(0, 10);
