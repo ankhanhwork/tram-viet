@@ -130,17 +130,24 @@ export function Modal({
   title,
   children,
   close,
+  nonModal = false,
 }: {
   title: string;
   children: ReactNode;
   close: () => void;
+  /** Keeps a focused demo instruction visible above this dialog. */
+  nonModal?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
-    ref.current?.showModal();
-  }, []);
+    const dialog = ref.current;
+    if (!dialog) return;
+    if (nonModal) dialog.show();
+    else dialog.showModal();
+    return () => dialog.close();
+  }, [nonModal]);
   return (
-    <dialog ref={ref} onCancel={close} className="modal">
+    <dialog ref={ref} onCancel={close} className={`modal${nonModal ? ' non-modal' : ''}`}>
       <div className="modal-heading">
         <h2>{title}</h2>
         <button aria-label="Đóng" className="icon-button" onClick={close}>

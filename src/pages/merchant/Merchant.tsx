@@ -171,7 +171,7 @@ export function MerchantOrders() {
           </span>
         </div>
       )}
-      <div className="tabs merchant-tabs">
+      <div className="tabs merchant-tabs" data-demo-target="merchant-order-tabs">
         {tabs.map(([id, label]) => (
           <button className={tab === id ? 'active' : ''} onClick={() => setTab(id)} key={id}>
             {label}
@@ -212,7 +212,7 @@ function MerchantOrderCard({ part: p }: { part: MerchantOrder }) {
   const t = s.trips.find((t) => t.id === p.tripId)!;
   const prep = preparation(s, p);
   return (
-    <Link className="card merchant-order-card" to={`/merchant/orders/${p.id}`}>
+    <Link className="card merchant-order-card" data-demo-target={p.status === 'NEW' ? 'merchant-new-order' : undefined} to={`/merchant/orders/${p.id}`}>
       <div className="row">
         <h3>{o.publicOrderCode}</h3>
         <Status status={p.status} />
@@ -269,6 +269,9 @@ export function MerchantOrderDetail() {
     const error = s.transition(p!.id, status, rejectReason, pickup);
     if (error) return notify(error);
     notify(`Đơn ${o.publicOrderCode}: ${statusLabels[status]}.`);
+    if (s.demoGuideEnabled && s.demoGuideStep === 11 && status === 'ACCEPTED') {
+      s.setDemoGuideStep(12);
+    }
     setModal(null);
   }
   return (
@@ -385,6 +388,7 @@ export function MerchantOrderDetail() {
       {actions[p.status] && (
         <button
           className="button full"
+          data-demo-target="merchant-order-action"
           disabled={p.status === 'READY' && !stop.checkedInAt}
           onClick={() => (p.status === 'READY' ? setModal('pickup') : move(next))}
         >

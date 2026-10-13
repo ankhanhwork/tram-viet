@@ -72,6 +72,7 @@ export function TravelHome() {
 
   function startPlanning(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (s.demoGuideEnabled && s.demoGuideStep === 0) s.setDemoGuideStep(1);
     const query = new URLSearchParams({
       mode: 'manual',
       from: origin.trim(),
@@ -161,7 +162,7 @@ export function TravelHome() {
                 onChange={(event) => setDepartureDate(event.target.value)}
               />
             </label>
-            <button className="button full home-plan-submit">
+            <button className="button full home-plan-submit" data-demo-target="planner-start">
               Lên lịch trình <ArrowRight size={18} />
             </button>
           </form>
@@ -309,8 +310,8 @@ export function MyTrips() {
           </Link>
         }
       />
-      <Link className="button secondary full" to="/app/trips/new?mode=import">
-        Nhập lịch trình · Ảnh, PDF hoặc văn bản <Plus size={17} />
+      <Link className="button secondary full" data-demo-target="planner-import" to="/app/trips/new?mode=manual">
+        Tạo lịch trình demo · bắt đầu tại đây <Plus size={17} />
       </Link>
       <div className="tabs">
         {[
@@ -589,7 +590,7 @@ export function ShareTrip() {
   return (
     <>
       <Back title="Chia sẻ hành trình" to={base} />
-      <Card className="share-card">
+      <Card className="share-card" data-demo-target="driver-share">
         <Pill>Khách trên xe</Pill>
         <h2>
           Xem hành trình

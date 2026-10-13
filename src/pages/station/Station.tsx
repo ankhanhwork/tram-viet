@@ -150,7 +150,7 @@ export function StationOverview() {
           </Link>
         </Card>
       )}
-      <div className="station-kpis">
+      <div className="station-kpis" data-demo-target="station-kpis">
         <Metric icon={<Bus />} label="Xe sắp đến trong 2 giờ" value={incoming.length} />
         <Metric
           icon={<Users />}
@@ -331,7 +331,7 @@ export function Vehicles() {
         title="Xe sắp đến"
         description="Theo dõi Dự kiến đến và nhu cầu đặt trước theo từng chuyến."
       />
-      <div className="filter-bar">
+      <div className="filter-bar" data-demo-target="station-vehicle-filter">
         <div className="tabs">
           {[
             ['ALL', 'Tất cả'],
@@ -862,7 +862,7 @@ export function StationPartners() {
       <Title
         title="Đối tác"
         description="Xếp hạng tài xế theo giá trị khách mang đến hoặc quy mô hành khách. Thỏa thuận % được quản lý riêng tại trạm."
-        action={<label>Xếp hạng<select value={rankBy} onChange={(e) => setRankBy(e.target.value as typeof rankBy)}><option value="revenue">Theo doanh thu khách</option><option value="passengers">Theo lượng khách</option></select></label>}
+        action={<label data-demo-target="station-partner-ranking">Xếp hạng<select value={rankBy} onChange={(e) => setRankBy(e.target.value as typeof rankBy)}><option value="revenue">Theo doanh thu khách</option><option value="passengers">Theo lượng khách</option></select></label>}
       />
       <Card>
         <div className="table-scroll">

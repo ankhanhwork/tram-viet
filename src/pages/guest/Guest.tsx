@@ -62,11 +62,13 @@ export function GuestLanding() {
       <Card>
         <h2>{t.name}</h2>
         <p>Thông tin giúp cửa hàng chuẩn bị và bàn giao đúng món cho bạn.</p>
-        <form
+        <form data-demo-target="guest-start"
           onSubmit={(e) => {
             e.preventDefault();
-            if (!name.trim()) return notify('Vui lòng nhập họ tên của bạn.');
-            s.setGuest(name.trim(), phone.trim());
+            const demoMode = new URLSearchParams(location.search).get('guide') === '1';
+            const guestName = name.trim() || (demoMode ? 'Khách demo' : '');
+            if (!guestName) return notify('Vui lòng nhập họ tên của bạn.');
+            s.setGuest(guestName, phone.trim());
             navigate(`${base}/journey${new URLSearchParams(location.search).get('guide') === '1' ? '?guide=1' : ''}`);
           }}
         >
@@ -74,7 +76,7 @@ export function GuestLanding() {
             Họ tên <span className="required">*</span>
             <input
               autoComplete="name"
-              required
+              required={!new URLSearchParams(location.search).get('guide')}
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Nhập họ tên của bạn"
@@ -142,7 +144,7 @@ export function GuestJourney() {
           Dự kiến {clock(stop.arrivalAt)} · Nghỉ {stop.restMinutes} phút
         </p>
         {stop.stationId && (
-          <Link className="button full" to={`${base}/station/${stop.stationId}`}>
+          <Link className="button full" data-demo-target="guest-next-stop" to={`${base}/station/${stop.stationId}`}>
             {t.stop} <ArrowRight size={17} />
           </Link>
         )}

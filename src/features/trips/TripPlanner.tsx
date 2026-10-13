@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
@@ -47,6 +47,9 @@ export function TripPlanner() {
     : s.demoTime;
   const [step, setStep] = useState(1),
     [mode, setMode] = useState(search.get('mode') === 'import' ? 'import' : 'manual');
+  useEffect(() => {
+    setMode(search.get('mode') === 'import' ? 'import' : 'manual');
+  }, [search]);
   const [departure, setDeparture] = useState(
     localTime(existing?.stops[0].arrivalAt ?? requestedDeparture),
   );
@@ -121,6 +124,28 @@ export function TripPlanner() {
     .sort((a, b) => (placeInfo(a.name)?.km ?? 0) - (placeInfo(b.name)?.km ?? 0))
     .filter((_, index, all) => all.length < 3 || index === 0 || index === all.length - 1)
     .slice(0, 2);
+  // The guide is a stateful walkthrough, so recover the matching planner screen after
+  // a refresh or hot reload instead of leaving a spotlight pointed at a hidden control.
+  useEffect(() => {
+    if (!s.demoGuideEnabled) return;
+    const guideStep = s.demoGuideStep;
+    if (guideStep >= 4 && guideStep <= 6) {
+      setStep(2);
+      if (guideStep === 5 && !detailStationId && balancedStations[0]) {
+        setDetailStationId(balancedStations[0].id);
+      }
+      if (guideStep !== 5 && detailStationId) setDetailStationId(null);
+      if (Object.keys(rests).length === 0 && balancedStations.length) {
+        setRests(Object.fromEntries(balancedStations.map((station, index) => [station.id, index === 0 ? 15 : 25])));
+      }
+    } else if (guideStep === 7) {
+      setStep(3);
+      setDetailStationId(null);
+    } else if (guideStep === 8) {
+      setStep(4);
+      setDetailStationId(null);
+    }
+  }, [balancedStations, detailStationId, rests, s.demoGuideEnabled, s.demoGuideStep]);
   const stops = schedule(isoTime(departure), points, selected).map((p) => {
     const original = existing?.stops.find((old) =>
       p.stationId ? old.stationId === p.stationId : old.id === p.id,
@@ -293,6 +318,9 @@ export function TripPlanner() {
       importText(exampleText, 'AI Demo · Hà Nội → Quảng Bình');
       setBusy(false);
       notify('AI Demo đã tạo lịch Hà Nội → Quảng Bình. Bạn có thể chỉnh từng mốc trước khi tiếp tục.');
+      if (s.demoGuideEnabled && s.demoGuideStep === 2) {
+        s.setDemoGuideStep(3);
+      }
     }, 650);
   }
   async function readFile(file: File) {
@@ -362,7 +390,10 @@ export function TripPlanner() {
     };
     s.saveTrip(trip);
     notify(existing ? 'Đã cập nhật lịch trình.' : 'Đã lưu hành trình của bạn.');
-    navigate(`/app/trips/${trip.id}`);
+    if (s.demoGuideEnabled && s.demoGuideStep === 8) {
+      s.setDemoGuideStep(9);
+      navigate('/app/trips/trip-hn-qb/share');
+    } else navigate(`/app/trips/${trip.id}`);
   }
   return (
     <>
@@ -383,7 +414,10 @@ export function TripPlanner() {
             <button className={mode === 'manual' ? 'active' : ''} onClick={() => setMode('manual')}>
               Nhập thủ công
             </button>
-            <button className={mode === 'import' ? 'active' : ''} onClick={() => setMode('import')}>
+            <button data-demo-target="planner-ai-mode" className={mode === 'import' ? 'active' : ''} onClick={() => {
+              setMode('import');
+              if (s.demoGuideEnabled && s.demoGuideStep === 1) s.setDemoGuideStep(2);
+            }}>
               Tự tạo bằng AI
             </button>
           </div>
@@ -394,6 +428,7 @@ export function TripPlanner() {
               <p>Hà Nội → Quảng Bình · 6 điểm lớn · gợi ý sẵn điểm nghỉ phù hợp.</p>
               <button
                 className="button full"
+                data-demo-target="planner-demo-itinerary"
                 disabled={busy}
                 onClick={generateDemoItinerary}
               >
@@ -455,6 +490,7 @@ export function TripPlanner() {
                 if (Date.parse(isoTime(desired)) <= Date.parse(isoTime(departure)))
                   return notify('Giờ muốn đến cần sau giờ xuất phát.');
                 enterRestPlanning();
+                if (s.demoGuideEnabled && s.demoGuideStep === 3) s.setDemoGuideStep(4);
               }}
             >
               <Card>
@@ -603,14 +639,14 @@ export function TripPlanner() {
                   nếu tuyến của bạn khác.
                 </p>
               </Card>
-              <button className="button full">Xem lịch trình cân bằng <ArrowRight size={18} /></button>
+              <button className="button full" data-demo-target="planner-review-next">Xem lịch trình cân bằng <ArrowRight size={18} /></button>
             </form>
           )}
         </>
       )}
       {step === 2 && (
         <>
-          <Card className="route-preview-card" data-tour="route-preview">
+          <Card className="route-preview-card" data-tour="route-preview" data-demo-target="planner-rest-map">
             <div className="row"><div><span className="eyebrow">TUYẾN ĐƯỜNG ĐỀ XUẤT</span><h2>{points[0].name} → {points.at(-1)?.name}</h2></div><Pill>{points.slice(1).reduce((total, point) => total + point.km, 0)} km</Pill></div>
             <RouteArt origin={points[0].name} destination={points.at(-1)?.name ?? 'Quảng Bình'} progress={0.48} />
             <div className="route-place-strip" aria-label="Các tỉnh thành đi qua">
@@ -719,7 +755,10 @@ export function TripPlanner() {
                           </p>
                         )}
                         <div className="rest-station-actions">
-                          <button className="button secondary" onClick={() => setDetailStationId(itemStation.id)}>
+                          <button className="button secondary" data-demo-target={itemStation.id === balancedStations[0]?.id ? 'planner-rest-detail' : undefined} onClick={() => {
+                            setDetailStationId(itemStation.id);
+                            if (s.demoGuideEnabled && s.demoGuideStep === 4) s.setDemoGuideStep(5);
+                          }}>
                             Chi tiết
                           </button>
                           {selectedStation && (
@@ -753,8 +792,9 @@ export function TripPlanner() {
               <p>Chưa có trạm gợi ý trên chặng này. Bạn vẫn có thể tiếp tục lịch trình hoặc quay lại điều chỉnh các điểm đến.</p>
             </Card>
           )}
-          <button className="button full" onClick={() => {
+          <button className="button full" data-demo-target="planner-rest-continue" onClick={() => {
             setStep(3);
+            if (s.demoGuideEnabled && s.demoGuideStep === 6) s.setDemoGuideStep(7);
           }}>
             {selected.length > 0
               ? `Tiếp tục với ${selected.length} điểm nghỉ · đến ${clock(stops.at(-1)!.arrivalAt)}`
@@ -770,6 +810,7 @@ export function TripPlanner() {
           onSubmit={(e) => {
             e.preventDefault();
             setStep(4);
+            if (s.demoGuideEnabled && s.demoGuideStep === 7) s.setDemoGuideStep(8);
           }}
         >
           <Card>
@@ -844,7 +885,7 @@ export function TripPlanner() {
             </label>
             <p>Lịch trình sẽ được chia sẻ cho khách bằng đường dẫn hoặc mã QR.</p>
           </Card>
-          <button className="button full">Xem lại hành trình</button>
+          <button className="button full" data-demo-target="planner-info-next">Xem lại hành trình</button>
           <button type="button" className="button secondary full" onClick={() => setStep(2)}>
             Quay lại điểm nghỉ
           </button>
@@ -861,7 +902,7 @@ export function TripPlanner() {
             <Timeline trip={preview} />
           </Card>
           <ArrivalSummary />
-          <button className="button full" onClick={save}>
+          <button className="button full" data-demo-target="planner-save" onClick={save}>
             {existing ? 'Lưu thay đổi' : 'Tạo hành trình & sổ tay'}
           </button>
           <button className="button secondary full" onClick={() => setStep(3)}>
@@ -870,7 +911,7 @@ export function TripPlanner() {
         </>
       )}
       {detailStation && (
-        <Modal title="Chi tiết trạm dừng" close={() => setDetailStationId(null)}>
+        <Modal title="Chi tiết trạm dừng" close={() => setDetailStationId(null)} nonModal={s.demoGuideEnabled}>
           <div className="rest-detail-cover">
             <img src="/images/station-ninh-binh.webp" alt={detailStation.name} />
             <Pill tone={detailStation.partner ? 'green' : 'blue'}>
@@ -903,9 +944,11 @@ export function TripPlanner() {
           </div>
           <button
             className="button full"
+            data-demo-target="planner-add-station"
             onClick={() => {
               setRests((current) => ({ ...current, [detailStation.id]: current[detailStation.id] ?? 15 }));
               setDetailStationId(null);
+              if (s.demoGuideEnabled && s.demoGuideStep === 5) s.setDemoGuideStep(6);
             }}
           >
             <Check size={17} /> Thêm trạm vào hành trình

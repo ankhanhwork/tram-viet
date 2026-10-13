@@ -1,67 +1,90 @@
-import { useEffect, useState } from 'react';
-import { ChevronDown, CircleHelp, X } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { DemoGuidePanel } from '../../components/DemoGuidePanel';
+import { DemoSpotlight } from '../../components/DemoSpotlight';
+import { useDemoStore } from '../../store/useDemoStore';
 
 const guideKey = 'tram-viet-guest-guide';
-
-type GuideStep = { title: string; tap: string; result: string };
-
-function stepFor(path: string): [number, GuideStep] {
-  if (path.endsWith('/journey'))
-    return [2, { title: 'Xem điểm dừng kế tiếp', tap: 'Chạm “Xem trạm dừng” trên thẻ Điểm dừng tiếp theo.', result: 'Bạn sẽ thấy tiện ích, quầy và món có thể đặt trước.' }];
-  if (path.includes('/catalog'))
-    return [3, { title: 'Chọn món hoặc đặc sản', tap: 'Chạm “Thêm …” ngay trên món bạn muốn; dùng “Xem giỏ” khi đã chọn xong.', result: 'Giỏ hiển thị giá, quầy nhận và thời gian chuẩn bị.' }];
-  if (path.includes('/products/'))
-    return [3, { title: 'Xem kỹ trước khi thêm', tap: 'Chọn số lượng, thêm ghi chú nếu cần, rồi chạm “Thêm vào giỏ”.', result: 'Món được giữ trong giỏ để thanh toán một lần.' }];
-  if (path.includes('/cart'))
-    return [4, { title: 'Kiểm tra giỏ và thanh toán', tap: 'Chạm “Tiếp tục thanh toán”, chọn QR ngân hàng, ZaloPay, Visa/Mastercard hoặc Apple Pay.', result: 'Thanh toán trong demo được mô phỏng; không phát sinh giao dịch thật.' }];
-  if (path.includes('/orders/'))
-    return [5, { title: 'Đưa QR tại quầy', tap: 'Lưu hoặc mở mã QR nhận hàng và đưa cho nhân viên khi xe đã đến trạm.', result: 'Merchant quét QR để xác nhận đúng món, đúng khách.' }];
-  if (path.includes('/station/'))
-    return [3, { title: 'Khám phá trạm dừng', tap: 'Chạm “Khám phá sản phẩm” để xem đồ ăn, đồ uống, đặc sản và tiện ích.', result: 'Bạn vẫn có thể quay lại hành trình bất cứ lúc nào.' }];
-  return [1, { title: 'Bắt đầu sau khi quét QR', tap: 'Chọn ngôn ngữ ở phía trên, nhập họ tên, rồi chạm “Tiếp tục xem hành trình”.', result: 'Không cần tải app, tạo tài khoản hay cung cấp số điện thoại.' }];
-}
+type GuideStep = { title: string; instruction: string; selector: string; path: string };
 
 export function GuestMobileGuide() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { code } = useParams();
+  const s = useDemoStore();
   const [shown, setShown] = useState(() => sessionStorage.getItem(guideKey) === 'on');
-  const [expanded, setExpanded] = useState(true);
+  const trip = s.trips.find((item) => item.publicTripCode === code);
+  const stationId = trip?.stops.find((stop) => stop.stationId)?.stationId ?? 'station-ninh-binh';
+  const base = `/t/${code}`;
+  const steps = useMemo<GuideStep[]>(() => [
+    { title: 'Bắt đầu', instruction: 'Chạm “Tiếp tục xem hành trình”.', selector: '[data-demo-target="guest-start"]', path: base },
+    { title: 'Xem điểm dừng', instruction: 'Chạm “Xem trạm dừng”.', selector: '[data-demo-target="guest-next-stop"]', path: `${base}/journey` },
+    { title: 'Chọn món', instruction: 'Chạm “Khám phá sản phẩm”.', selector: '[data-demo-target="guest-catalog"]', path: `${base}/station/${stationId}` },
+    { title: 'Xem giỏ', instruction: 'Chạm dấu + trên món được làm sáng.', selector: '[data-demo-target="guest-add-product"]', path: `${base}/station/${stationId}/catalog` },
+    { title: 'Thanh toán', instruction: 'Chạm “Tiếp tục thanh toán”.', selector: '[data-demo-target="guest-checkout"]', path: `${base}/station/${stationId}/cart` },
+    { title: 'Hoàn tất đơn', instruction: 'Chạm nút “Thanh toán”.', selector: '[data-demo-target="guest-pay-demo"]', path: `${base}/station/${stationId}/checkout` },
+  ], [base, stationId]);
+  const orderPath = location.pathname.includes('/orders/');
+  const index = orderPath ? steps.length : Math.max(0, steps.findIndex((step) => location.pathname === step.path));
+  const step = orderPath
+    ? { title: 'Gửi đơn tới quầy', instruction: 'Chạm “Xem quầy nhận đơn”.', selector: '[data-demo-target="guest-order-handoff"]', path: location.pathname }
+    : steps[index] ?? steps[0];
+
   useEffect(() => {
     if (new URLSearchParams(location.search).get('guide') === '1') {
       sessionStorage.setItem(guideKey, 'on');
       setShown(true);
     }
   }, [location.search]);
-  if (!shown) return null;
-  const [number, step] = stepFor(location.pathname);
+  if (!shown || !trip) return null;
+
+  const withGuide = (path: string) => `${path}?guide=1`;
   const dismiss = () => {
     sessionStorage.removeItem(guideKey);
     setShown(false);
     if (location.search) navigate(location.pathname, { replace: true });
   };
+  const next = () => {
+    if (index === 0) {
+      s.setGuest(s.guest?.name ?? 'Khách demo', s.guest?.phone ?? '');
+      navigate(withGuide(steps[1].path));
+    } else if (index === 1) navigate(withGuide(steps[2].path));
+    else if (index === 2) navigate(withGuide(steps[3].path));
+    else if (index === 3) {
+      const product = s.products.find((item) => item.stationId === stationId && item.available);
+      if (product) s.addCart(trip.id, stationId, { productId: product.id, quantity: 1, note: '' });
+      navigate(withGuide(steps[4].path));
+    } else if (index === 4) navigate(withGuide(steps[5].path));
+    else if (index === 5) {
+      const result = s.checkout(trip.id, stationId, s.guest?.name ?? 'Khách demo', 'QR ngân hàng', true);
+      if (!result.error) navigate(`${base}/orders/${result.id}?success=1`);
+    } else {
+      const order = s.orders.filter((item) => item.tripId === trip.id && item.guestSessionId === s.guest?.id).at(-1);
+      const part = order && s.merchantOrders.find((item) => item.orderId === order.id);
+      if (!part) return;
+      sessionStorage.removeItem(guideKey);
+      setShown(false);
+      s.openMerchantDemo(part.merchantId);
+      s.setDemoGuide(true);
+      s.setDemoGuideStep(11);
+      navigate(`/merchant/orders/${part.id}?demo=1`);
+    }
+  };
   return (
-    <aside className={`guest-mobile-guide ${expanded ? 'expanded' : ''}`} aria-live="polite">
-      <div className="guest-guide-heading">
-        <button
-          className="guest-guide-toggle"
-          aria-expanded={expanded}
-          onClick={() => setExpanded((value) => !value)}
-        >
-          <CircleHelp size={16} />
-          <span>Demo {number}/5</span>
-          <strong>{step.title}</strong>
-          <ChevronDown size={16} />
-        </button>
-        <button className="icon-button" aria-label="Tắt hướng dẫn khách" onClick={dismiss}><X size={18} /></button>
-      </div>
-      {expanded && (
-        <div className="guest-guide-copy">
-          <span className="eyebrow">BƯỚC {number} / 5</span>
-          <p><b>Chạm:</b> {step.tap}</p>
-          <small><b>Sau đó:</b> {step.result}</small>
-        </div>
-      )}
-    </aside>
+    <>
+      <DemoSpotlight selector={step.selector} />
+      <DemoGuidePanel
+        className="guest-mobile-guide"
+        step={index + 1}
+        total={steps.length + 1}
+        title={step.title}
+        instruction={step.instruction}
+        previousLabel="Trước"
+        nextLabel={index === steps.length - 1 ? 'Thanh toán mẫu' : orderPath ? 'Mở quầy demo' : 'Tiếp'}
+        onPrevious={index ? () => navigate(withGuide(steps[index - 1].path)) : undefined}
+        onNext={next}
+        onClose={dismiss}
+      />
+    </>
   );
 }

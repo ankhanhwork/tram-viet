@@ -158,7 +158,7 @@ export function StationDetail() {
           )}
         </Card>
       ) : stop ? (
-        <Link className="button full" to={catalog}>
+        <Link className="button full" data-demo-target="guest-catalog" to={catalog}>
           Khám phá sản phẩm <ShoppingBag size={17} />
         </Link>
       ) : (
@@ -281,6 +281,7 @@ export function Catalog() {
                       <div className="product-bottom">
                         <strong>{money(p.price)}</strong>
                         <button
+                          data-demo-target={p.id === products[0]?.id ? 'guest-add-product' : undefined}
                           disabled={!enabled}
                           className="icon-button add-button"
                           aria-label={`Thêm ${p.name} tại ${m.name}`}
@@ -395,6 +396,7 @@ export function ProductDetail() {
       </Card>
       <button
         className="button full"
+        data-demo-target="guest-add-product"
         disabled={!available}
         onClick={() => {
           const error = s.addCart(trip.id, station.id, { productId: product.id, quantity, note });
@@ -582,6 +584,7 @@ export function Cart({ checkout = false }: { checkout?: boolean }) {
           {checkout ? (
             <button
               className="button full"
+              data-demo-target="guest-pay-demo"
               disabled={unavailable || loading || !name.trim()}
               onClick={() => void pay()}
             >
@@ -591,6 +594,7 @@ export function Cart({ checkout = false }: { checkout?: boolean }) {
             <>
               <Link
                 className={`button full ${unavailable ? 'disabled-link' : ''}`}
+                data-demo-target="guest-checkout"
                 aria-disabled={unavailable}
                 onClick={(e) => {
                   if (unavailable) e.preventDefault();
@@ -687,7 +691,7 @@ export function OrderTracking() {
       </Card>
       <OrderQr order={order} />
       {guest && success && parts[0] && (
-        <Card className="demo-handoff-card">
+        <Card className="demo-handoff-card" data-demo-target="guest-order-handoff">
           <span className="eyebrow">DEMO · BƯỚC TIẾP THEO</span>
           <h2>Đơn đã được gửi đến quầy</h2>
           <p>Hãy xem Cơm Việt nhận và chuẩn bị chính đơn đặt trước này như thế nào.</p>
@@ -695,6 +699,8 @@ export function OrderTracking() {
             className="button full"
             onClick={() => {
               s.openMerchantDemo(parts[0].merchantId);
+              s.setDemoGuide(true);
+              s.setDemoGuideStep(11);
               navigate(`/merchant/orders/${parts[0].id}?demo=1`);
             }}
           >
