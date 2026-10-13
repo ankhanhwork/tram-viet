@@ -1,7 +1,7 @@
 import { PickupScanner } from '../../components/OrderQr';
 import { useEffect, useRef, useState } from 'react';
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom';
-import { Bell, Clock, Printer, Volume2 } from 'lucide-react';
+import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { ArrowRight, Bell, Clock, Printer, Volume2 } from 'lucide-react';
 import {
   Back,
   Brand,
@@ -248,6 +248,9 @@ function MerchantOrderCard({ part: p }: { part: MerchantOrder }) {
 export function MerchantOrderDetail() {
   const s = useDemoStore();
   const { partId } = useParams();
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const demoFlow = params.get('demo') === '1';
   const p = s.merchantOrders.find((p) => p.id === partId && p.merchantId === s.merchantSessionId);
   const [modal, setModal] = useState<'reject' | 'pickup' | 'print' | null>(null);
   const [reason, setReason] = useState('Hết món');
@@ -288,6 +291,40 @@ export function MerchantOrderDetail() {
           <strong>{o.publicOrderCode}</strong>
         </div>
       </Card>
+      {demoFlow && (
+        <Card className="demo-handoff-card merchant-demo-card">
+          <span className="eyebrow">FLOW QUẦY · {p.status === 'NEW' ? '1' : p.status === 'ACCEPTED' ? '2' : p.status === 'PREPARING' ? '3' : 'HOÀN TẤT'} / 3</span>
+          <h2>
+            {p.status === 'NEW'
+              ? 'Nhận đơn vừa đến'
+              : p.status === 'ACCEPTED'
+                ? 'Bắt đầu chuẩn bị món'
+                : p.status === 'PREPARING'
+                  ? 'Đánh dấu món đã sẵn sàng'
+                  : 'Đơn đã sẵn sàng cho khách'}
+          </h2>
+          <p>
+            {p.status === 'NEW'
+              ? 'Chạm “Nhận đơn” bên dưới. Đơn sẽ chuyển sang Đã nhận.'
+              : p.status === 'ACCEPTED'
+                ? 'Chạm “Bắt đầu làm” khi quầy sẵn sàng.'
+                : p.status === 'PREPARING'
+                  ? 'Chạm “Đã làm xong” để khách biết món đang chờ tại quầy.'
+                  : 'Tiếp tục sang quản lý trạm để thấy xe, hành khách và giá trị đặt trước.'}
+          </p>
+          {p.status === 'READY' && (
+            <button
+              className="button full"
+              onClick={() => {
+                s.loginStation();
+                navigate(`/station?demo=1&trip=${p.tripId}&order=${o.id}`);
+              }}
+            >
+              Mở quản lý trạm <ArrowRight size={18} />
+            </button>
+          )}
+        </Card>
+      )}
       <Card className={prep.late ? 'warning-card' : 'blue-card'}>
         <div className="mini-metrics">
           <div>

@@ -40,10 +40,10 @@ export function MobileLayout({ guest = false }: { guest?: boolean }) {
             <Brand small />
           </Link>
         </header>
+        {guest && <GuestMobileGuide />}
         <main className="mobile-content">
           <Outlet />
         </main>
-        {guest && <GuestMobileGuide />}
         {!guest && (
           <nav className="bottom-nav" aria-label="Travel App">
             <NavLink to="/app" end>

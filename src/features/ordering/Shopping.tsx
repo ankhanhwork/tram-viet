@@ -650,6 +650,7 @@ export function CustomerOrders() {
 export function OrderTracking() {
   const { data: s, guest, trip, base } = useTripContext();
   const { orderId } = useParams();
+  const navigate = useNavigate();
   const order = s.orders.find((o) => o.id === orderId || o.publicOrderCode === orderId);
   const permitted =
     order &&
@@ -685,6 +686,22 @@ export function OrderTracking() {
         </div>
       </Card>
       <OrderQr order={order} />
+      {guest && success && parts[0] && (
+        <Card className="demo-handoff-card">
+          <span className="eyebrow">DEMO · BƯỚC TIẾP THEO</span>
+          <h2>Đơn đã được gửi đến quầy</h2>
+          <p>Hãy xem Cơm Việt nhận và chuẩn bị chính đơn đặt trước này như thế nào.</p>
+          <button
+            className="button full"
+            onClick={() => {
+              s.openMerchantDemo(parts[0].merchantId);
+              navigate(`/merchant/orders/${parts[0].id}?demo=1`);
+            }}
+          >
+            Xem quầy nhận đơn <ArrowRight size={18} />
+          </button>
+        </Card>
+      )}
       <div className="alert">
         <MapPin size={19} />
         <span>

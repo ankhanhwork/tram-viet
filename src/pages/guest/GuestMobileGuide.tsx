@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CircleHelp, X } from 'lucide-react';
+import { ChevronDown, CircleHelp, X } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const guideKey = 'tram-viet-guest-guide';
@@ -26,6 +26,7 @@ export function GuestMobileGuide() {
   const location = useLocation();
   const navigate = useNavigate();
   const [shown, setShown] = useState(() => sessionStorage.getItem(guideKey) === 'on');
+  const [expanded, setExpanded] = useState(true);
   useEffect(() => {
     if (new URLSearchParams(location.search).get('guide') === '1') {
       sessionStorage.setItem(guideKey, 'on');
@@ -40,15 +41,27 @@ export function GuestMobileGuide() {
     if (location.search) navigate(location.pathname, { replace: true });
   };
   return (
-    <aside className="guest-mobile-guide" aria-live="polite">
+    <aside className={`guest-mobile-guide ${expanded ? 'expanded' : ''}`} aria-live="polite">
       <div className="guest-guide-heading">
-        <span><CircleHelp size={16} /> HƯỚNG DẪN NHANH</span>
+        <button
+          className="guest-guide-toggle"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+        >
+          <CircleHelp size={16} />
+          <span>Demo {number}/5</span>
+          <strong>{step.title}</strong>
+          <ChevronDown size={16} />
+        </button>
         <button className="icon-button" aria-label="Tắt hướng dẫn khách" onClick={dismiss}><X size={18} /></button>
       </div>
-      <span className="eyebrow">BƯỚC {number} / 5</span>
-      <strong>{step.title}</strong>
-      <p><b>Chạm:</b> {step.tap}</p>
-      <small><b>Sau đó:</b> {step.result}</small>
+      {expanded && (
+        <div className="guest-guide-copy">
+          <span className="eyebrow">BƯỚC {number} / 5</span>
+          <p><b>Chạm:</b> {step.tap}</p>
+          <small><b>Sau đó:</b> {step.result}</small>
+        </div>
+      )}
     </aside>
   );
 }

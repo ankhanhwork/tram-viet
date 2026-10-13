@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDemoStore } from '../../store/useDemoStore';
 
@@ -19,6 +20,7 @@ export function DemoGuide() {
   const s = useDemoStore();
   const navigate = useNavigate();
   const location = useLocation();
+  const [expanded, setExpanded] = useState(false);
   if (!s.demoGuideEnabled || location.pathname.startsWith('/t/')) return null;
   const index = Math.min(s.demoGuideStep, steps.length - 1);
   const step = steps[index];
@@ -28,17 +30,24 @@ export function DemoGuide() {
     navigate(steps[nextIndex].route);
   };
   return (
-    <aside className="demo-guide" aria-live="polite">
-      <div className="row"><span className="eyebrow">{step.eyebrow}</span><button className="icon-button" aria-label="Tắt hướng dẫn" onClick={() => s.setDemoGuide(false)}><X size={17} /></button></div>
-      <strong>{step.title}</strong>
-      <p><b>Chạm:</b> {step.tap}</p>
-      <small><b>Kết quả:</b> {step.result}</small>
-      {!onStepRoute && <button className="link-button" onClick={() => navigate(step.route)}>Mở đúng giao diện</button>}
-      <div className="demo-guide-actions">
-        <button className="button secondary" disabled={!index} onClick={() => go(index - 1)}><ChevronLeft size={17} /> Trước</button>
-        <button className="button" onClick={() => index === steps.length - 1 ? s.setDemoGuide(false) : go(index + 1)}>{index === steps.length - 1 ? 'Kết thúc' : 'Tiếp'} <ChevronRight size={17} /></button>
+    <aside className={`demo-guide ${expanded ? 'expanded' : ''}`} aria-live="polite">
+      <div className="row">
+        <button className="demo-guide-toggle" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
+          <span className="eyebrow">Demo {index + 1}/{steps.length}</span>
+          <strong>{step.title}</strong>
+        </button>
+        <button className="icon-button" aria-label="Tắt hướng dẫn" onClick={() => s.setDemoGuide(false)}><X size={17} /></button>
       </div>
-      <small>{index + 1} / {steps.length} · Bạn luôn có thể thao tác hoặc bỏ qua một bước.</small>
+      {expanded && <>
+        <p><b>Chạm:</b> {step.tap}</p>
+        <small><b>Kết quả:</b> {step.result}</small>
+        {!onStepRoute && <button className="link-button" onClick={() => navigate(step.route)}>Mở đúng giao diện</button>}
+        <div className="demo-guide-actions">
+          <button className="button secondary" disabled={!index} onClick={() => go(index - 1)}><ChevronLeft size={17} /> Trước</button>
+          <button className="button" onClick={() => index === steps.length - 1 ? s.setDemoGuide(false) : go(index + 1)}>{index === steps.length - 1 ? 'Kết thúc' : 'Tiếp'} <ChevronRight size={17} /></button>
+        </div>
+        <small>{index + 1} / {steps.length} · Bạn luôn có thể thao tác hoặc bỏ qua một bước.</small>
+      </>}
     </aside>
   );
 }

@@ -114,6 +114,7 @@ function VehicleState({ trip }: { trip: Trip }) {
 }
 export function StationOverview() {
   const s = useDemoStore();
+  const [params] = useSearchParams();
   const parts = stationParts(s.merchantOrders);
   const m = metrics(parts);
   const trips = s.trips.filter((t) => t.stops.some((stop) => stop.stationId === MAIN_STATION));
@@ -124,6 +125,8 @@ export function StationOverview() {
         120,
   );
   const completedRatio = m.total ? (m.completed / m.total) * 100 : 0;
+  const demoTrip = params.get('demo') === '1' ? trips.find((trip) => trip.id === params.get('trip')) : undefined;
+  const demoOrder = params.get('demo') === '1' ? s.orders.find((order) => order.id === params.get('order')) : undefined;
   return (
     <>
       <Title
@@ -135,6 +138,18 @@ export function StationOverview() {
           </span>
         }
       />
+      {demoTrip && demoOrder && (
+        <Card className="demo-handoff-card station-demo-card">
+          <span className="eyebrow">FLOW QUẢN LÝ TRẠM · ĐIỂM KẾT</span>
+          <h2>Trạm đã nhìn thấy nhu cầu trước khi xe tới</h2>
+          <p>
+            {demoTrip.company ?? demoTrip.title} · {demoTrip.passengerCount} khách · đơn {demoOrder.publicOrderCode} trị giá {money(demoOrder.total)} đang chờ phục vụ.
+          </p>
+          <Link className="button full" to={`/station/vehicles/${demoTrip.id}`}>
+            Xem chi tiết xe sắp đến <ArrowRight size={18} />
+          </Link>
+        </Card>
+      )}
       <div className="station-kpis">
         <Metric icon={<Bus />} label="Xe sắp đến trong 2 giờ" value={incoming.length} />
         <Metric

@@ -389,8 +389,19 @@ export function TripPlanner() {
           </div>
           {mode === 'import' ? (
             <Card>
-              <h2>Đưa lịch trình vào AI Demo</h2>
-              <p>Tải PDF, ảnh hoặc dán nội dung. Demo tạo một lịch trình có thể chỉnh sửa, không gửi dữ liệu ra ngoài.</p>
+              <span className="eyebrow">NHANH NHẤT ĐỂ TRÌNH DIỄN</span>
+              <h2>Dùng lịch trình mẫu</h2>
+              <p>Hà Nội → Quảng Bình · 6 điểm lớn · gợi ý sẵn điểm nghỉ phù hợp.</p>
+              <button
+                className="button full"
+                disabled={busy}
+                onClick={generateDemoItinerary}
+              >
+                {busy ? 'Đang tạo lịch trình…' : 'Bắt đầu với lịch trình mẫu'} <ArrowRight size={18} />
+              </button>
+              <div className="demo-import-divider"><span>hoặc thử AI từ tài liệu</span></div>
+              <h3>Thử AI từ tài liệu</h3>
+              <p className="fine-print">Tính năng này đang được mô phỏng trong demo. Bạn có thể tải ảnh, PDF hoặc dán nội dung để xem kết quả; không cần thực hiện bước này để tiếp tục.</p>
               <label className="upload-zone">
                 <Upload />
                 <strong>{busy ? 'Đang đọc tài liệu…' : 'Tải ảnh hoặc PDF'}</strong>
@@ -428,13 +439,6 @@ export function TripPlanner() {
                 Mỗi dòng: giờ, địa điểm | ghi chú | số phút tham quan. Ảnh và PDF dạng scan cần nhập
                 lại các mốc giờ.
               </small>
-              <button
-                className="button full"
-                disabled={busy}
-                onClick={generateDemoItinerary}
-              >
-                {busy ? 'Đang tạo lịch trình…' : 'Tạo lịch Hà Nội → Quảng Bình'} <ArrowRight size={18} />
-              </button>
               <button
                 className="button secondary full"
                 disabled={busy || !text.trim()}

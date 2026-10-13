@@ -6,7 +6,7 @@
   position: fixed;
   z-index: 40;
   right: 1.25rem;
-  bottom: 1.25rem;
+  top: 1.25rem;
   width: min(22rem, calc(100vw - 2rem));
   padding: 1rem;
   border: 1px solid color-mix(in srgb, #1769e0 20%, white);
@@ -17,6 +17,8 @@
 }
 .demo-guide > strong { display: block; font-size: 1.05rem; margin: .35rem 0; }
 .demo-guide > p { margin: 0 0 .55rem; }
+.demo-guide-toggle { display: grid; min-width: 0; gap: .08rem; padding: 0; border: 0; background: transparent; color: #153967; text-align: left; }
+.demo-guide-toggle strong { overflow: hidden; max-width: 15rem; font-size: .88rem; text-overflow: ellipsis; white-space: nowrap; }
 .demo-guide-actions { display: flex; gap: .5rem; margin-top: .75rem; }
 .demo-guide-actions .button { flex: 1; }
 .demo-guide small { display: block; margin-top: .65rem; }
@@ -29,32 +31,27 @@
 .switch-row input { width: 2.65rem; height: 1.45rem; accent-color: #1769e0; }
 .rate-input { display: inline-flex; align-items: center; gap: .25rem; font-weight: 700; }
 .rate-input input { width: 4.1rem; min-height: 2.15rem; padding: .2rem .4rem; }
-.guest-mobile-guide { display: none; }
+.guest-mobile-guide {
+  display: block;
+  margin: .55rem .7rem 0;
+  padding: .5rem .7rem;
+  border: 1px solid #d7e7fa;
+  border-radius: .95rem;
+  background: rgba(247, 251, 255, .96);
+  box-shadow: 0 .35rem 1.1rem rgba(16,42,67,.08);
+  backdrop-filter: blur(14px) saturate(150%);
+}
+.guest-guide-heading { display: flex; align-items: center; justify-content: space-between; gap: .35rem; }
+.guest-guide-toggle { display: flex; min-width: 0; align-items: center; gap: .38rem; padding: .1rem; border: 0; background: transparent; color: #1769e0; font-size: .75rem; font-weight: 800; text-align: left; }
+.guest-guide-toggle strong { overflow: hidden; color: #25486f; font-size: .75rem; text-overflow: ellipsis; white-space: nowrap; }
+.guest-guide-toggle svg:last-child { flex: 0 0 auto; transition: transform .22s ease; }
+.guest-mobile-guide:not(.expanded) .guest-guide-toggle svg:last-child { transform: rotate(-90deg); }
+.guest-guide-copy { padding: .48rem .12rem .05rem; }
+.guest-guide-copy p, .guest-guide-copy small { display: block; margin: .2rem 0; color: #3f5e7c; font-size: .78rem; line-height: 1.45; }
+.guest-guide-copy small { color: #617993; }
 @media (max-width: 600px) {
-  .demo-guide { right: .65rem; bottom: .65rem; width: min(21rem, calc(100vw - 1.3rem)); }
-  .guest-mobile-guide {
-    display: block;
-    position: fixed;
-    z-index: 35;
-    left: 50%;
-    bottom: .6rem;
-    width: min(25rem, calc(100vw - 1.25rem));
-    transform: translateX(-50%);
-    padding: .85rem 1rem 1rem;
-    border: 1px solid rgba(255,255,255,.8);
-    border-radius: 1.25rem;
-    background: rgba(255,255,255,.92);
-    box-shadow: 0 .7rem 2.25rem rgba(16,42,67,.22);
-    backdrop-filter: blur(20px) saturate(160%);
-    pointer-events: none;
-  }
-  .guest-mobile-guide .icon-button { pointer-events: auto; }
-  .guest-guide-heading { display: flex; align-items: center; justify-content: space-between; color: #1769e0; font-size: .72rem; font-weight: 800; letter-spacing: .05em; }
-  .guest-guide-heading span { display: inline-flex; align-items: center; gap: .35rem; }
-  .guest-mobile-guide > strong { display: block; margin: .35rem 0; font-size: 1rem; }
-  .guest-mobile-guide p, .guest-mobile-guide small { display: block; margin: .25rem 0; line-height: 1.4; }
-  .guest-mobile-guide small { color: #536b84; }
-  .guest-shell .mobile-content { padding-bottom: 10.5rem; }
+  .demo-guide { right: .65rem; top: .65rem; width: min(21rem, calc(100vw - 1.3rem)); }
+  .guest-shell .mobile-content { padding-bottom: 5.25rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .demo-guide { backdrop-filter: none; background: #fff; }
@@ -3743,9 +3740,49 @@ table .text-link {
   height: 60px !important;
 }
 
-/* Kept last so the compact QR guide always reserves real touch space above it. */
+/* Kept last so the compact QR guide leaves enough touch space above browser chrome. */
 @media (max-width: 600px) {
   .guest-shell .mobile-content {
-    padding-bottom: 12rem;
+    padding-bottom: 5.25rem;
   }
+}
+
+.demo-import-divider {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  margin: 1rem 0 .8rem;
+  color: #70859d;
+  font-size: .78rem;
+}
+.demo-import-divider::before,
+.demo-import-divider::after {
+  flex: 1;
+  height: 1px;
+  background: #dce8f5;
+  content: '';
+}
+.demo-handoff-card {
+  margin: 1rem 0;
+  border-color: #c9e0fb !important;
+  background: linear-gradient(135deg, #f3f9ff, #fff) !important;
+  box-shadow: 0 .55rem 1.35rem rgba(23, 105, 224, .09);
+}
+.demo-handoff-card h2 {
+  margin: .2rem 0 .3rem;
+  color: #153967;
+  font-size: 1.05rem;
+  letter-spacing: -.01em;
+}
+.demo-handoff-card p {
+  margin: 0 0 .8rem;
+  color: #55708d;
+  font-size: .84rem;
+  line-height: 1.5;
+}
+.demo-handoff-card .button { margin: 0; }
+.merchant-demo-card { border-color: #d9d5ff !important; background: linear-gradient(135deg, #f7f5ff, #fff) !important; }
+.station-demo-card { max-width: 48rem; }
+@media (prefers-reduced-motion: reduce) {
+  .guest-guide-toggle svg:last-child { transition: none; }
 }
