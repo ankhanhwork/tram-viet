@@ -6,7 +6,7 @@
   position: fixed;
   z-index: 55;
   right: 1.25rem;
-  bottom: 1.25rem;
+  bottom: var(--guide-bottom, 1.25rem);
   width: min(22rem, calc(100vw - 2rem));
   padding: 1rem;
   border: 1px solid color-mix(in srgb, #1769e0 20%, white);
@@ -17,6 +17,8 @@
 }
 .demo-guide-instruction { color: #31577f; font-size: .84rem; font-weight: 650; line-height: 1.42; }
 .demo-guide-heading { display: flex; align-items: center; justify-content: space-between; gap: .55rem; }
+.demo-guide-drag-handle { display: grid; place-items: center; width: 100%; height: 18px; margin: -.45rem 0 .15rem; padding: 0; border: 0; background: transparent; color: #7190ad; cursor: grab; touch-action: none; }
+.demo-guide-drag-handle:active { cursor: grabbing; color: #1769e0; }
 .demo-guide-toggle { display: grid; grid-template-areas: 'icon eyebrow arrow' 'icon title arrow'; grid-template-columns: auto minmax(0, 1fr) auto; min-width: 0; flex: 1; column-gap: .38rem; padding: 0; border: 0; background: transparent; color: #153967; text-align: left; }
 .demo-guide-toggle svg:first-child { grid-area: icon; align-self: center; color: #1769e0; }
 .demo-guide-toggle .eyebrow { grid-area: eyebrow; margin: 0; font-size: .62rem; }
@@ -39,7 +41,7 @@
   display: block;
   position: fixed;
   z-index: 55;
-  bottom: max(.7rem, env(safe-area-inset-bottom));
+  bottom: var(--guide-bottom, max(.7rem, env(safe-area-inset-bottom)));
   left: 50%;
   width: min(25rem, calc(100vw - 1.4rem));
   margin: 0;
@@ -52,10 +54,10 @@
   backdrop-filter: blur(20px) saturate(160%);
 }
 .demo-spotlight { position: fixed; z-index: 50; inset: 0; pointer-events: none; }
-.demo-spotlight i { position: fixed; display: block; background: rgba(15, 36, 66, .57); transition: all .22s ease; }
-.demo-spotlight b { position: fixed; display: block; border: 2px solid #6fb2ff; border-radius: .8rem; box-shadow: 0 0 0 4px rgba(111, 178, 255, .25), 0 0 1.4rem rgba(30, 126, 242, .45); transition: all .22s ease; }
+.demo-spotlight i { position: fixed; display: block; background: rgba(15, 36, 66, .57); }
+.demo-spotlight b { position: fixed; display: block; border: 2px solid #6fb2ff; border-radius: .8rem; box-shadow: 0 0 0 4px rgba(111, 178, 255, .25), 0 0 1.4rem rgba(30, 126, 242, .45); }
 @media (max-width: 600px) {
-  .demo-guide { right: .65rem; bottom: max(.7rem, env(safe-area-inset-bottom)); width: min(21rem, calc(100vw - 1.3rem)); }
+  .demo-guide { right: .65rem; bottom: var(--guide-bottom, max(.7rem, env(safe-area-inset-bottom))); width: min(21rem, calc(100vw - 1.3rem)); }
   .guest-shell .mobile-content { padding-bottom: 9.5rem; }
 }
 @media (prefers-reduced-motion: reduce) {

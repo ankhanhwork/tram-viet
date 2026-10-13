@@ -177,6 +177,7 @@ export function StationDetail() {
 }
 export function Catalog() {
   const { data: s, trip, station, base, guest } = useTripContext();
+  const navigate = useNavigate();
   const [category, setCategory] = useState<Category | 'ALL'>('ALL');
   const [query, setQuery] = useState('');
   const [merchant, setMerchant] = useState(
@@ -292,6 +293,9 @@ export function Catalog() {
                               note: '',
                             });
                             notify(error ?? `Đã thêm ${p.name} vào giỏ.`);
+                            if (!error && (new URLSearchParams(window.location.search).get('guide') === '1' || sessionStorage.getItem('tram-viet-guest-guide') === 'on')) {
+                              navigate(`${url}/cart?guide=1`);
+                            }
                           }}
                         >
                           <Plus size={18} />

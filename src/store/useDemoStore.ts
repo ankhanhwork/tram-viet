@@ -289,8 +289,6 @@ export const useDemoStore = create<DemoStore>()(
           return 'Phiên này không có quyền xử lý phần đơn.';
         if (!canTransition(part.status, status)) return 'Không thể bỏ qua hoặc lặp bước xử lý đơn.';
         if (status === 'REJECTED' && !reason?.trim()) return 'Hãy chọn lý do từ chối.';
-        if (status === 'PICKED_UP' && !tripStop(s, part)?.checkedInAt)
-          return 'Chờ tài xế check-in tại đúng trạm.';
         if (status === 'PICKED_UP' && code?.trim() !== part.pickupCode)
           return 'Mã nhận món chưa đúng.';
         set({
@@ -348,7 +346,10 @@ export const useDemoStore = create<DemoStore>()(
         await finishPrint(ticketId);
       },
       setOption: (key, value) => set({ [key]: value }),
-      setDemoGuide: (enabled) => set({ demoGuideEnabled: enabled, demoGuideStep: enabled ? 0 : 0 }),
+      setDemoGuide: (enabled) => set((s) => {
+        if (!enabled && s.demoGuideStep < 16) return s;
+        return enabled ? { demoGuideEnabled: true, demoGuideStep: 0 } : { demoGuideEnabled: false };
+      }),
       setDemoGuideStep: (step) => set({ demoGuideStep: Math.max(0, step) }),
       setCommissionRate: (userId, rate) =>
         set((s) => ({
@@ -390,6 +391,11 @@ export const useDemoStore = create<DemoStore>()(
         return {
           ...currentState,
           ...persisted,
+          // A first visit always starts guided. It can only stay dismissed after the
+          // final (16th) step has been reached.
+          demoGuideEnabled: persisted.demoGuideStep !== undefined && persisted.demoGuideStep >= 16
+            ? Boolean(persisted.demoGuideEnabled)
+            : true,
           stations: includeSeedItems(currentState.stations, persisted.stations),
           merchants: includeSeedItems(currentState.merchants, persisted.merchants),
           products: includeSeedItems(currentState.products, persisted.products),

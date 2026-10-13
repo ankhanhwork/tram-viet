@@ -548,7 +548,7 @@ export function createSeed(): DemoData {
     autoPrint: true,
     sound: false,
     appInstalled: false,
-    demoGuideEnabled: false,
+    demoGuideEnabled: true,
     demoGuideStep: 0,
     guestLanguage: 'vi',
   };

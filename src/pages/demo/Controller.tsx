@@ -55,7 +55,7 @@ export default function Controller() {
           <h2>Hướng dẫn trình diễn</h2>
           <p>Bật để dẫn người demo qua Tài xế → Khách → Merchant → Quản lý trạm.</p>
           <label className="switch-row">
-            <input type="checkbox" checked={s.demoGuideEnabled} onChange={(e) => s.setDemoGuide(e.target.checked)} />
+            <input type="checkbox" checked={s.demoGuideEnabled} disabled={s.demoGuideStep < 16} onChange={(e) => s.setDemoGuide(e.target.checked)} />
             <span>{s.demoGuideEnabled ? 'Đang bật hướng dẫn' : 'Hướng dẫn đang tắt'}</span>
           </label>
           {s.demoGuideEnabled && <button className="button secondary" onClick={() => s.setDemoGuideStep(0)}>Bắt đầu lại từ tài xế</button>}

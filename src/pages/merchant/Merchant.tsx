@@ -272,6 +272,13 @@ export function MerchantOrderDetail() {
     if (s.demoGuideEnabled && s.demoGuideStep === 11 && status === 'ACCEPTED') {
       s.setDemoGuideStep(12);
     }
+    if (s.demoGuideEnabled && s.demoGuideStep === 12 && status === 'PREPARING') {
+      s.setDemoGuideStep(13);
+    }
+    if (s.demoGuideEnabled && s.demoGuideStep === 13 && status === 'READY') {
+      s.setDemoGuideStep(14);
+      navigate('/station');
+    }
     setModal(null);
   }
   return (
@@ -379,17 +386,22 @@ export function MerchantOrderDetail() {
         </div>
       </Card>
       {p.status === 'READY' && (
-        <div className={`alert ${stop.checkedInAt ? '' : 'warning'}`}>
+        <div className="alert">
           {stop.checkedInAt
             ? `Tài xế đã check-in lúc ${clock(stop.checkedInAt)}. Quét QR của khách trước khi bàn giao.`
-            : 'Món sẵn sàng. Chờ tài xế check-in để bàn giao.'}
+            : 'Món sẵn sàng. Có thể quét QR của khách để bàn giao ngay.'}
         </div>
       )}
       {actions[p.status] && (
         <button
           className="button full"
-          data-demo-target="merchant-order-action"
-          disabled={p.status === 'READY' && !stop.checkedInAt}
+          data-demo-target={p.status === 'NEW'
+            ? 'merchant-accept-order'
+            : p.status === 'ACCEPTED'
+              ? 'merchant-start-prep'
+              : p.status === 'PREPARING'
+                ? 'merchant-finish-prep'
+                : undefined}
           onClick={() => (p.status === 'READY' ? setModal('pickup') : move(next))}
         >
           {actions[p.status]}

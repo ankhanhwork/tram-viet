@@ -39,11 +39,6 @@ export function GuestMobileGuide() {
   if (!shown || !trip) return null;
 
   const withGuide = (path: string) => `${path}?guide=1`;
-  const dismiss = () => {
-    sessionStorage.removeItem(guideKey);
-    setShown(false);
-    if (location.search) navigate(location.pathname, { replace: true });
-  };
   const next = () => {
     if (index === 0) {
       s.setGuest(s.guest?.name ?? 'Khách demo', s.guest?.phone ?? '');
@@ -83,7 +78,7 @@ export function GuestMobileGuide() {
         nextLabel={index === steps.length - 1 ? 'Thanh toán mẫu' : orderPath ? 'Mở quầy demo' : 'Tiếp'}
         onPrevious={index ? () => navigate(withGuide(steps[index - 1].path)) : undefined}
         onNext={next}
-        onClose={dismiss}
+        onClose={undefined}
       />
     </>
   );
