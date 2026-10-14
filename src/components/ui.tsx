@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode, type ComponentPropsWithoutRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Bus, Check, MapPin, X } from 'lucide-react';
 import { create } from 'zustand';
@@ -36,8 +36,8 @@ export function Brand({ small = false }: { small?: boolean }) {
     />
   );
 }
-export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <section className={`card ${className}`}>{children}</section>;
+export function Card({ children, className = '', ...props }: ComponentPropsWithoutRef<'section'>) {
+  return <section {...props} className={`card ${className}`}>{children}</section>;
 }
 export function Pill({ children, tone = 'blue' }: { children: ReactNode; tone?: string }) {
   return <span className={`pill ${tone}`}>{children}</span>;

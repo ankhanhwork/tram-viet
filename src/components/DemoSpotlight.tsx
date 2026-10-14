@@ -1,54 +1,63 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
-type Rect = { top: number; left: number; right: number; bottom: number; width: number; height: number };
+type Frame = { top: number; left: number; width: number; height: number; pageHeight: number; fixed: boolean };
 
 export function DemoSpotlight({ selector }: { selector?: string }) {
-  const [rect, setRect] = useState<Rect | null>(null);
-  const lastRect = useRef<Rect | null>(null);
-
+  const [frame, setFrame] = useState<Frame | null>(null);
   useEffect(() => {
-    if (!selector) return setRect(null);
+    if (!selector) { setFrame(null); return; }
     const update = () => {
       const target = document.querySelector(selector);
-      if (!target) return setRect(null);
+      if (!target) { setFrame(null); return; }
       const box = target.getBoundingClientRect();
-      const padding = 6;
-      const next = {
-        top: Math.max(0, box.top - padding),
-        left: Math.max(0, box.left - padding),
-        right: Math.min(window.innerWidth, box.right + padding),
-        bottom: Math.min(window.innerHeight, box.bottom + padding),
-        width: Math.min(window.innerWidth, box.right + padding) - Math.max(0, box.left - padding),
-        height: Math.min(window.innerHeight, box.bottom + padding) - Math.max(0, box.top - padding),
+      if (!box.width || !box.height) { setFrame(null); return; }
+      // Normal controls use document coordinates so native scrolling carries
+      // the highlight with them. Fixed controls retain viewport coordinates.
+      let fixed = false;
+      for (let node: Element | null = target; node; node = node.parentElement) {
+        if (getComputedStyle(node).position === 'fixed') { fixed = true; break; }
+      }
+      const next: Frame = {
+        top: box.top + (fixed ? 0 : window.scrollY) - 6,
+        left: box.left + (fixed ? 0 : window.scrollX) - 6,
+        width: box.width + 12,
+        height: box.height + 12,
+        pageHeight: Math.max(document.getElementById('root')?.offsetHeight ?? 0, window.innerHeight),
+        fixed,
       };
-      const previous = lastRect.current;
-      if (previous && Object.entries(next).every(([key, value]) => previous[key as keyof Rect] === value)) return;
-      lastRect.current = next;
-      setRect(next);
+      setFrame((previous) => previous && Object.keys(next).every(
+        (key) => previous[key as keyof Frame] === next[key as keyof Frame],
+      ) ? previous : next);
     };
-    // A spotlight is a still frame of the current instruction. Following every
-    // scroll/layout tick makes it shimmer on mobile, which is distracting in a pitch.
     update();
     window.addEventListener('resize', update);
-    // Keep the snapshot correct when an async UI update (for example, the kitchen
-    // print acknowledgement) pushes the highlighted CTA. We deliberately do not
-    // subscribe to scroll, so the spotlight never chases the page while it moves.
+    // Dialogs scroll internally; only their own scroll events need a new frame.
+    // Document scrolling is handled entirely by the browser's native layout.
+    const onInnerScroll = (event: Event) => {
+      if (event.target instanceof Element && event.target.contains(document.querySelector(selector))) update();
+    };
+    document.addEventListener('scroll', onInnerScroll, true);
     const observer = new MutationObserver(update);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    observer.observe(document.getElementById('root') ?? document.body, {
+      childList: true, subtree: true, characterData: true, attributes: true,
+    });
+    const resizeObserver = new ResizeObserver(update);
+    resizeObserver.observe(document.getElementById('root') ?? document.body);
     return () => {
       window.removeEventListener('resize', update);
+      document.removeEventListener('scroll', onInnerScroll, true);
       observer.disconnect();
+      resizeObserver.disconnect();
     };
   }, [selector]);
-
-  if (!rect) return null;
-  return (
-    <div className="demo-spotlight" aria-hidden="true">
-      <i style={{ top: 0, left: 0, right: 0, height: rect.top }} />
-      <i style={{ top: rect.top, left: 0, width: rect.left, height: rect.height }} />
-      <i style={{ top: rect.top, left: rect.right, right: 0, height: rect.height }} />
-      <i style={{ top: rect.bottom, left: 0, right: 0, bottom: 0 }} />
-      <b style={{ top: rect.top, left: rect.left, width: rect.width, height: rect.height }} />
-    </div>
+  if (!frame) return null;
+  return createPortal(
+    <div className="demo-spotlight" aria-hidden="true" style={{
+      position: frame.fixed ? 'fixed' : 'absolute',
+      height: frame.fixed ? '100%' : frame.pageHeight,
+    }}>
+      <b style={{ top: frame.top, left: frame.left, width: frame.width, height: frame.height }} />
+    </div>, document.body,
   );
 }

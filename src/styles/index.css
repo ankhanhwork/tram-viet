@@ -53,9 +53,17 @@
   box-shadow: 0 1rem 2rem rgba(12, 34, 74, .14);
   backdrop-filter: blur(20px) saturate(160%);
 }
-.demo-spotlight { position: fixed; z-index: 50; inset: 0; pointer-events: none; }
-.demo-spotlight i { position: fixed; display: block; background: rgba(15, 36, 66, .57); }
-.demo-spotlight b { position: fixed; display: block; border: 2px solid #6fb2ff; border-radius: .8rem; box-shadow: 0 0 0 4px rgba(111, 178, 255, .25), 0 0 1.4rem rgba(30, 126, 242, .45); }
+/* Leave enough scroll space to bring the last control above the guide and nav. */
+body:has(.demo-guide-panel) .mobile-stage .mobile-content { padding-bottom: calc(18rem + env(safe-area-inset-bottom)); }
+body:has(.demo-guide-panel) .station-body { padding-bottom: 15rem; }
+@media (max-width: 600px) {
+  body:has(.demo-guide-panel) .modal.non-modal {
+    bottom: calc(14rem + env(safe-area-inset-bottom));
+    max-height: calc(100dvh - 15rem - env(safe-area-inset-bottom));
+  }
+}
+.demo-spotlight { z-index: 54; top: 0; left: 0; width: 100%; overflow: clip; pointer-events: none; }
+.demo-spotlight b { position: absolute; display: block; border: 2px solid #6fb2ff; border-radius: .8rem; box-shadow: 0 0 0 4px rgba(111, 178, 255, .25), 0 0 1.4rem rgba(30, 126, 242, .45), 0 0 0 10000px rgba(15, 36, 66, .57); }
 @media (max-width: 600px) {
   .demo-guide { right: .65rem; bottom: var(--guide-bottom, max(.7rem, env(safe-area-inset-bottom))); width: min(21rem, calc(100vw - 1.3rem)); }
   .guest-shell .mobile-content { padding-bottom: 9.5rem; }
