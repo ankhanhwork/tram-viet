@@ -5,6 +5,7 @@ import { DemoSpotlight } from '../../components/DemoSpotlight';
 import { useDemoStore } from '../../store/useDemoStore';
 
 const guideKey = 'tram-viet-guest-guide';
+const guideDismissedKey = 'tram-viet-guest-guide-dismissed';
 type GuideStep = { title: string; instruction: string; selector: string; path: string };
 
 export function GuestMobileGuide() {
@@ -12,7 +13,9 @@ export function GuestMobileGuide() {
   const navigate = useNavigate();
   const { code } = useParams();
   const s = useDemoStore();
-  const [shown, setShown] = useState(() => sessionStorage.getItem(guideKey) === 'on');
+  const [shown, setShown] = useState(
+    () => sessionStorage.getItem(guideKey) === 'on' && sessionStorage.getItem(guideDismissedKey) !== 'on',
+  );
   const trip = s.trips.find((item) => item.publicTripCode === code);
   const stationId = trip?.stops.find((stop) => stop.stationId)?.stationId ?? 'station-ninh-binh';
   const base = `/t/${code}`;
@@ -31,14 +34,28 @@ export function GuestMobileGuide() {
     : steps[index] ?? steps[0];
 
   useEffect(() => {
-    if (new URLSearchParams(location.search).get('guide') === '1') {
+    if (!s.demoGuideEnabled) {
+      sessionStorage.removeItem(guideKey);
+      setShown(false);
+      return;
+    }
+    const query = new URLSearchParams(location.search);
+    const restartGuide = query.get('restartGuide') === '1';
+    if (restartGuide) sessionStorage.removeItem(guideDismissedKey);
+    if (query.get('guide') === '1' && sessionStorage.getItem(guideDismissedKey) !== 'on') {
       sessionStorage.setItem(guideKey, 'on');
       setShown(true);
     }
-  }, [location.search]);
-  if (!shown || !trip) return null;
+  }, [location.search, s.demoGuideEnabled]);
+  if (!s.demoGuideEnabled || !shown || !trip) return null;
 
   const withGuide = (path: string) => `${path}?guide=1`;
+  const dismiss = () => {
+    sessionStorage.removeItem(guideKey);
+    sessionStorage.setItem(guideDismissedKey, 'on');
+    setShown(false);
+    navigate(location.pathname, { replace: true });
+  };
   const next = () => {
     if (index === 0) {
       s.setGuest(s.guest?.name ?? 'Khách demo', s.guest?.phone ?? '');
@@ -78,7 +95,7 @@ export function GuestMobileGuide() {
         nextLabel={index === steps.length - 1 ? 'Thanh toán mẫu' : orderPath ? 'Mở quầy demo' : 'Tiếp'}
         onPrevious={index ? () => navigate(withGuide(steps[index - 1].path)) : undefined}
         onNext={next}
-        onClose={undefined}
+        onClose={dismiss}
       />
     </>
   );

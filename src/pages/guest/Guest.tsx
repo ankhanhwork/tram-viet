@@ -97,7 +97,7 @@ export function GuestLanding() {
           </button>
         </form>
         <p className="fine-print center">Không cần tài khoản hoặc tải ứng dụng.</p>
-        {!new URLSearchParams(location.search).get('guide') && <Link className="text-link" to={`${base}?guide=1`}>Hướng dẫn trải nghiệm trên điện thoại <ArrowRight size={16} /></Link>}
+        {!new URLSearchParams(location.search).get('guide') && <Link className="text-link" to={`${base}?guide=1&restartGuide=1`}>Hướng dẫn trải nghiệm trên điện thoại <ArrowRight size={16} /></Link>}
         <TextLink to={`/app/login?next=${encodeURIComponent(`/app/trips/${trip.id}`)}`}>
           Đã có tài khoản? Đăng nhập
         </TextLink>
